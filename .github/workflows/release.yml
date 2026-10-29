@@ -1,0 +1,83 @@
+name: Release 📦
+
+on:
+  # Release when a version tag is pushed, for example v1.0.1
+  push:
+    tags:
+      - 'v*'
+
+  # Test, tag the version in library.json, and release when started by hand (Actions > Run workflow, on the branch to release)
+  workflow_dispatch:
+
+jobs:
+  # Run the same tests and ESP32 build as CI
+  test:
+    name: Test & Build 🧪
+    uses: ./.github/workflows/ci.yml
+
+  release:
+    name: Release 📦
+    # Release only after the tests pass
+    needs: test
+    runs-on: ubuntu-latest
+
+    # Push the version tag of a manual run and create the GitHub Release
+    permissions:
+      contents: write
+
+    steps:
+      # Checkout repository (with tags, to check the version is new)
+      - name: 🚚 Checkout repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      # Resolve the release tag: the pushed tag, or the library.json version for a manual run
+      - name: 🏷️ Resolve release tag
+        id: release
+        run: |
+          LIBRARY_VERSION=$(python3 -c "import json; print(json.load(open('library.json'))['version'])")
+          if [ "$GITHUB_EVENT_NAME" = "push" ]; then
+            TAG="$GITHUB_REF_NAME"
+          else
+            TAG="v$LIBRARY_VERSION"
+          fi
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "version=$LIBRARY_VERSION" >> "$GITHUB_OUTPUT"
+
+      # Ensure the pushed tag matches the version declared in library.json
+      - name: ✅ Validate tag version
+        if: github.event_name == 'push'
+        run: |
+          TAG_VERSION="${GITHUB_REF_NAME#v}"
+          if [ "${{ steps.release.outputs.version }}" != "$TAG_VERSION" ]; then
+            echo "Tag version ($TAG_VERSION) does not match library.json version (${{ steps.release.outputs.version }})."
+            exit 1
+          fi
+
+      # Ensure a manual run releases a new version
+      - name: ✅ Check the version is new
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          TAG="${{ steps.release.outputs.tag }}"
+          if git rev-parse -q --verify "refs/tags/$TAG" > /dev/null; then
+            echo "Tag $TAG already exists: bump the version in library.json first."
+            exit 1
+          fi
+
+      # Tag the released commit for a manual run, only once the tests passed
+      - name: 🏷️ Push version tag
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag -a "${{ steps.release.outputs.tag }}" -m "${{ steps.release.outputs.version }}"
+          git push origin "${{ steps.release.outputs.tag }}"
+
+      # Create a GitHub Release for the same tag with generated release notes
+      - name: 📦 Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.release.outputs.tag }}
+          name: ${{ steps.release.outputs.tag }}
+          generate_release_notes: true

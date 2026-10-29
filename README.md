@@ -51,7 +51,14 @@ Both run in CI on every push.
 
 ## 🏷️ Versioning
 
-Releases are git tags following [semantic versioning](https://semver.org): a breaking change bumps the major version, so projects only change behavior when you update their pin. Remember to update `version` in `library.json` with each tag.
+Releases are git tags following [semantic versioning](https://semver.org): a breaking change bumps the major version, so projects only change behavior when you update their pin.
+
+To release:
+
+1. Bump `version` in `library.json` and push it.
+2. Run the **Release 📦** workflow by hand (Actions > Release > Run workflow, on the branch to release). It runs the tests and the ESP32 build, then creates the `v<version>` tag and a GitHub Release with generated notes.
+
+Pushing a `v*` tag yourself works too: the workflow then checks that it matches `library.json` before releasing.
 
 ## 📄 License
 

@@ -4,6 +4,9 @@ on:
   push:
   pull_request:
 
+  # Reused by the release workflow, so a release is tested the same way
+  workflow_call:
+
 jobs:
   test:
     name: Test & Build 🧪
