@@ -43,8 +43,6 @@ The Wi-Fi setup covers the device side only: the connection, the setup hotspot, 
 
 Each project pins an exact release of the library, so an update never changes a device by surprise: you bump the version when you are ready, build, and test. The library has its own native tests and CI, so the shared code is checked once, in one place.
 
-Gizmo Common is used by [Gizmo Ticker](https://github.com/open-gizmo/gizmo-ticker) and [Gizmo Reolink Switch](https://github.com/open-gizmo/gizmo-reolink-switch).
-
 <a id="images"></a>
 ## 🖼️ Images
 
@@ -107,57 +105,21 @@ Gizmo Common is built around these parts:
 
 	```ini
 	lib_deps =
-		https://github.com/open-gizmo/gizmo-common.git#v2.0.0
+		https://github.com/open-gizmo/gizmo-common.git#vX.Y.Z
 	```
 
-	The web server, AsyncTCP and ArduinoJson come along automatically, pinned by the library. Check the [GitHub Releases](https://github.com/open-gizmo/gizmo-common/releases/latest) page for the latest version.
+	Replace `vX.Y.Z` with the latest version from the [GitHub Releases](https://github.com/open-gizmo/gizmo-common/releases/latest) page. The libraries it needs come along automatically, pinned by the library.
 
-2. **Start logging first thing in `setup()`.**
+2. **Include the headers of the modules you need.**
 
 	```cpp
-	#include <gizmo/log.h>
-
-	void setup() {
-		gizmo::initLog(true); // Call first, before other tasks can log
-		gizmo::printLogfln("Booted, %u tasks", 3);
-	}
+	#include <gizmo/wifi_setup.h> // Wi-Fi setup and captive portal
+	#include <gizmo/http.h>       // Web API helpers
+	#include <gizmo/log.h>        // Logging
+	#include <gizmo/format.h>     // Duration and number formatting
 	```
 
-3. **Format durations and numbers.**
-
-	```cpp
-	#include <gizmo/format.h>
-
-	char duration[gizmo::DURATION_TEXT_SIZE];
-	gizmo::formatDuration(125, duration, sizeof(duration)); // "02:05"
-
-	char price[24];
-	gizmo::formatNumber(0.08123, gizmo::getSignificantDecimals(0.08123), gizmo::NumberFormat::US, price, sizeof(price)); // "0.08123"
-	```
-
-4. **Add the Wi-Fi setup (optional).**
-
-	```cpp
-	#include <gizmo/wifi_setup.h>
-
-	AsyncWebServer server(80);
-
-	void setup() {
-		gizmo::initLog(true);
-		gizmo::setupWifi(server, { "Gizmo-Example", "example", "/setup", nullptr }); // Hotspot, mDNS name, setup page, setup page files
-		server.onNotFound([](AsyncWebServerRequest *request) {
-			if (gizmo::handleCaptivePortalRequest(request)) return; // Send hotspot clients to the setup page
-			request->send(404);
-		});
-		server.begin();
-	}
-
-	void loop() {
-		gizmo::manageWifi(); // Never blocks
-	}
-	```
-
-	See [examples/wifi_setup](examples/wifi_setup/main.cpp) for the full example.
+3. **Start from the examples.** [examples/basic](examples/basic/main.cpp) shows logging and formatting, and [examples/wifi_setup](examples/wifi_setup/main.cpp) shows a complete Wi-Fi setup. Each function is documented in its header under [src/gizmo/](src/gizmo/).
 
 <a id="hardware"></a>
 ## 🔌 Hardware
@@ -169,14 +131,14 @@ Gizmo Common is built around these parts:
 | ESP32 with the Arduino framework, core 3 (`espressif32@8.0.0`) | ✅ | ✅ | ✅ |
 | Native tests on your computer (`platform = native`) | ➖ Skipped | ➖ Skipped | ✅ |
 
-The Wi-Fi setup, the web API and logging need the ESP32 (Wi-Fi, `Serial`, FreeRTOS), so native builds leave them out automatically, and the web server isn't even downloaded. A project only pays in flash for the modules it calls. Since v2.0.0 the library is built and tested on Arduino core 3 only.
+The Wi-Fi setup, the web API and logging need the ESP32 (Wi-Fi, `Serial`, FreeRTOS), so native builds leave them out automatically, and the web server isn't even downloaded. A project only pays in flash for the modules it calls. The library is built and tested on Arduino core 3.
 
 <a id="firmware-overview"></a>
 ## 🔍 Firmware Overview
 
 ### ⚙️ General
 
-Everything lives in the `gizmo::` namespace, so it can't clash with project code. The headers are under [src/gizmo/](src/gizmo/), and [examples/basic](examples/basic/main.cpp) shows both modules at work.
+Everything lives in the `gizmo::` namespace, so it can't clash with project code. The headers are under [src/gizmo/](src/gizmo/), each function is documented there, and the [examples](examples/) show the modules at work.
 
 ### 🧩 Firmware Layers
 
@@ -189,13 +151,11 @@ The library is split into focused modules under `src/gizmo/`:
 
 ### 📡 Wi-Fi setup
 
-- `setupWifi(server, options)` loads the saved network and registers the Wi-Fi API. Call it before `server.begin()`.
-- `manageWifi()` runs on every loop iteration and never blocks: it connects, retries every 10 seconds, and opens the open setup hotspot whenever there's no working network.
+- Never blocks the main loop: it connects, retries, and opens an open setup hotspot whenever there's no working network.
 - New credentials are tried first and saved only once they connect. If they fail, the device goes back to the saved network.
-- The hotspot turns itself off once the setup page has seen the connection succeed, or 2 minutes after the Wi-Fi comes back.
-- `handleCaptivePortalRequest(request)` redirects clients connected through the hotspot to the setup page. Clients on the normal network are never redirected.
-- `getWifiStatus()`, `isWifiConnected()`, `isAccessPointActive()`, `getSavedWifiSsid()` and `clearWifiCredentials()` let the project show the status and reset the network.
-- The saved network lives in the `gizmo-wifi` NVS namespace.
+- The hotspot turns itself off once the setup page has seen the connection succeed, or shortly after the Wi-Fi comes back.
+- Only clients connected through the hotspot are redirected to the setup page. Clients on the normal network are never redirected.
+- The saved network lives in its own NVS namespace, apart from the project's settings.
 
 The Wi-Fi API the setup page talks to:
 
@@ -209,22 +169,11 @@ The Wi-Fi API the setup page talks to:
 
 ### 🌐 Web API
 
-- Every response has the same shape: `{ errorId, errorMessage, data }`, with `errorId` and `errorMessage` set to `null` on success.
-- `ensureCorsAllowed(request)` accepts same-origin requests only, so other websites can't call the device from a visitor's browser.
-- `readJsonBody(...)` reads a JSON object body in a body handler, answering `413` above 2 KB and `400` for invalid JSON, with a single error response even when the body arrives in several chunks.
+Every gizmo answers its API the same way, so any UI can talk to any device:
 
-### 🧾 Logging
-
-- `initLog(isEnabled, baudRate)` starts the serial port and creates the mutex. Call it first in `setup()`: logs before it are dropped.
-- `printLog()` and `printLogln()` print any value Arduino's `Serial` can print.
-- `printLogf()` and `printLogfln()` take a `printf` format. The compiler checks it against the arguments when `-Wformat` is enabled (add `build_src_flags = -Wformat` to your environment).
-- Lines up to 255 characters are printed in full, longer ones are cut off.
-
-### 🔢 Formatting
-
-- `formatDuration(seconds, buffer, size)` writes `MM:SS`. A `DURATION_TEXT_SIZE` buffer fits any value.
-- `formatNumber(value, decimals, format, buffer, size)` adds thousands separators. `NaN` and infinity are shown as zero.
-- `getSignificantDecimals(value, significantDigits, minDecimals, maxDecimals)` picks the decimals: 2 from 1 up, more below so small values keep 4 significant digits (with the defaults).
+- Every response has the shape `{ errorId, errorMessage, data }`, with `errorId` and `errorMessage` set to `null` on success.
+- Only same-origin requests are accepted, so other websites can't call the device from a visitor's browser.
+- Request bodies are limited to 2 KB.
 
 ### 🧪 Tests
 
@@ -266,11 +215,11 @@ lib_deps =
 
 - The setup hotspot doesn't appear: it only opens when there's no saved network or the saved one fails to connect (about 12 seconds after boot). Check the serial logs.
 - The phone doesn't open the setup page by itself: open any `http://` address in the browser while connected to the hotspot, and you'll be redirected.
-- `ticker.local`-style addresses don't work: mDNS isn't supported by every router and Android version. Use the IP address shown by `/api/check-connection` instead.
+- `<hostname>.local` addresses don't work: mDNS isn't supported by every router and Android version. Use the IP address shown by `/api/check-connection` instead.
 - `invalid_connection_field` when connecting: the network name is longer than 32 characters or the password longer than 64.
-- Logs don't appear: call `gizmo::initLog(true)` first in `setup()`, and check the monitor speed matches the baud rate (115200 by default).
-- `gizmo/log.h`, `gizmo/http.h` or `gizmo/wifi_setup.h` functions are missing in native tests: they are only built for the ESP32. Keep them out of the modules you test natively.
-- Format warnings after adding the library: the compiler found a `printLogf()` argument that doesn't match its format. Fix the argument type or the format.
+- Logs don't appear: start logging first thing in `setup()` (earlier logs are dropped), and check the monitor speed matches the baud rate (115200 by default).
+- Wi-Fi setup, web API or logging functions are missing in native tests: they are only built for the ESP32. Keep them out of the modules you test natively.
+- Format warnings after adding the library: the compiler found a log argument that doesn't match its `printf` format. Fix the argument type or the format.
 - A project still uses old library code: it is pinned to an older tag. Bump the `#vX.Y.Z` in its `lib_deps`, or delete its `.pio/libdeps` folder after changing the pin.
 - The release workflow fails at "Validate tag version": the pushed tag doesn't match `version` in `library.json`.
 - The release workflow fails at "Check the version is new": that version is already released. Bump `version` in `library.json` first.
