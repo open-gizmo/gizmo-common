@@ -33,6 +33,6 @@ jobs:
       - name: 🧪 Run native tests
         run: pio test -e native
 
-      # Compile the library for the ESP32
+      # Compile the library and its examples for the ESP32
       - name: 🛠️ Build for ESP32
-        run: pio run -e esp32dev
+        run: pio run -e esp32dev -e esp32dev_wifi_setup

@@ -1,13 +1,39 @@
 {
 	"name": "gizmo-common",
-	"version": "1.0.0",
-	"description": "Shared helpers for the OpenGizmo ESP32 projects: thread-safe logging and text formatting.",
-	"keywords": "esp32, logging, formatting",
+	"version": "2.0.0",
+	"description": "Shared helpers for the OpenGizmo ESP32 projects: thread-safe logging, text formatting, web API helpers and Wi-Fi setup with a captive portal.",
+	"keywords": "esp32, logging, formatting, wifi, captive portal",
 	"repository": {
 		"type": "git",
 		"url": "https://github.com/open-gizmo/gizmo-common.git"
 	},
 	"license": "MIT",
+	"dependencies": [
+		{
+			"owner": "esp32async",
+			"name": "ESPAsyncWebServer",
+			"version": "3.12.1",
+			"platforms": [
+				"espressif32"
+			]
+		},
+		{
+			"owner": "esp32async",
+			"name": "AsyncTCP",
+			"version": "3.5.0",
+			"platforms": [
+				"espressif32"
+			]
+		},
+		{
+			"owner": "bblanchon",
+			"name": "ArduinoJson",
+			"version": "7.2.2",
+			"platforms": [
+				"espressif32"
+			]
+		}
+	],
 	"export": {
 		"exclude": [
 			".github",
