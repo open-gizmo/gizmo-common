@@ -134,7 +134,8 @@ Gizmo Common is built around three parts:
 
 | Target | Logging | Formatting |
 | --- | --- | --- |
-| ESP32 with the Arduino framework (`espressif32@6.13.0`) | ✅ | ✅ |
+| ESP32 with the Arduino framework, core 3 (`espressif32@8.0.0`) | ✅ | ✅ |
+| ESP32 with the Arduino framework, core 2 (`espressif32@6.13.0`) | ✅ | ✅ |
 | Native tests on your computer (`platform = native`) | ➖ Skipped | ✅ |
 
 The logging module needs the Arduino `Serial` port and FreeRTOS, so native builds leave it out automatically.
