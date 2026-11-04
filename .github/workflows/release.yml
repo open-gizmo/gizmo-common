@@ -45,6 +45,15 @@ jobs:
           echo "tag=$TAG" >> "$GITHUB_OUTPUT"
           echo "version=$LIBRARY_VERSION" >> "$GITHUB_OUTPUT"
 
+      # Ensure package.json (the gizmo-embed tool) has the same version as library.json
+      - name: ✅ Validate package version
+        run: |
+          PACKAGE_VERSION=$(python3 -c "import json; print(json.load(open('package.json'))['version'])")
+          if [ "$PACKAGE_VERSION" != "${{ steps.release.outputs.version }}" ]; then
+            echo "package.json version ($PACKAGE_VERSION) does not match library.json version (${{ steps.release.outputs.version }})."
+            exit 1
+          fi
+
       # Ensure the pushed tag matches the version declared in library.json
       - name: ✅ Validate tag version
         if: github.event_name == 'push'

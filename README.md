@@ -63,6 +63,7 @@ Uptime 00:02, price 0.08123
 - Wi-Fi setup without reflashing: an open setup hotspot with a captive portal, a network scan, and credentials that are saved only once they actually connect.
 - Automatic reconnection, and a hotspot that turns itself off once the Wi-Fi is back.
 - A web API with the same response format, CORS rules and body size limit on every gizmo.
+- Web apps built into the firmware: the `gizmo-embed` tool gzips a static site into C++, and one call serves it with the right cache headers and a 404 page.
 - Serial logging with one shared, mutex-guarded buffer, safe to call from any FreeRTOS task.
 - Compile-time checks of `printf`-style format strings against their arguments.
 - `MM:SS` duration formatting that never cuts off long durations.
@@ -79,6 +80,7 @@ Gizmo Common is built around these parts:
 
 - 📡 **Wi-Fi setup module** (`gizmo/wifi_setup.h`) connects the device, runs the setup hotspot and serves the Wi-Fi API.
 - 🌐 **Web API module** (`gizmo/http.h`) gives every endpoint the same responses, CORS checks and body handling.
+- 🗂️ **Embedded assets module** (`gizmo/embedded_assets.h`) serves a web app built into the firmware, and the **`gizmo-embed` tool** generates it from the app's build.
 - 🧾 **Logging module** (`gizmo/log.h`) wraps the serial port for the ESP32 firmware.
 - 🔢 **Formatting module** (`gizmo/format.h`) turns durations and numbers into text, on the board and on a computer.
 - 🏷️ **Release workflow** tests the library and publishes a `vX.Y.Z` tag that projects pin in their `lib_deps`.
@@ -115,6 +117,7 @@ Gizmo Common is built around these parts:
 	```cpp
 	#include <gizmo/wifi_setup.h> // Wi-Fi setup and captive portal
 	#include <gizmo/http.h>       // Web API helpers
+	#include <gizmo/embedded_assets.h> // Web app built into the firmware
 	#include <gizmo/log.h>        // Logging
 	#include <gizmo/format.h>     // Duration and number formatting
 	```
@@ -146,6 +149,7 @@ The library is split into focused modules under `src/gizmo/`:
 
 - 📡 `wifi_setup.*` runs the Wi-Fi connection, the setup hotspot, the captive portal and the Wi-Fi API.
 - 🌐 `http.*` sends API responses, checks CORS and reads request bodies.
+- 🗂️ `embedded_assets.*` finds and serves the files of an embedded web app.
 - 🧾 `log.*` prints logs through one shared buffer guarded by a mutex.
 - 🔢 `format.*` formats durations and numbers.
 
@@ -175,12 +179,47 @@ Every gizmo answers its API the same way, so any UI can talk to any device:
 - Only same-origin requests are accepted, so other websites can't call the device from a visitor's browser.
 - Request bodies are limited to 2 KB.
 
+### 🗂️ Embedded web apps
+
+A project's web app (for example a Nuxt site built with `nuxt generate`) is built into the firmware in two steps:
+
+1. **Generate the C++ from the site build.** Add the library to the web app as a dev dependency, pinned to the same tag as `lib_deps`, and run its `gizmo-embed` tool after the build:
+
+	```json
+	"scripts": {
+		"build:embedded": "nuxt generate && gizmo-embed .output/public ../microcontroller/src/webui"
+	},
+	"devDependencies": {
+		"gizmo-common": "github:open-gizmo/gizmo-common#vX.Y.Z"
+	}
+	```
+
+	It writes `generated_assets.h` and `generated_assets.cpp` (keep them out of git, and generate them in CI).
+
+2. **Serve the files in the server's not-found handler.**
+
+	```cpp
+	#include "webui/generated_assets.h"
+
+	server.onNotFound([](AsyncWebServerRequest *request) {
+		if (gizmo::handleEmbeddedAssetRequest(request, EMBEDDED_ASSETS, EMBEDDED_ASSET_COUNT)) {
+			return;
+		}
+		request->send(404);
+	});
+	```
+
+- Pages are served at their folder (`settings/index.html` at `/settings`), with or without a trailing slash.
+- A missing page gets the site's `/404.html` with a 404 status; a missing API call, file or script gets a plain 404.
+- Every file is sent gzipped. Files under `/_nuxt/` have a content hash in their name and are cached for a year, while pages and the build manifest are checked again on every load.
+
 ### 🧪 Tests
 
-The formatting module is tested on your computer, no board needed. The Wi-Fi setup and web API need a board, so CI compiles them through the examples:
+The formatting and embedded assets modules, and the `gizmo-embed` tool, are tested on your computer, no board needed. The Wi-Fi setup and web API need a board, so CI compiles them through the examples:
 
 ```bash
 pio test -e native   # Unit tests
+npm test             # Tests of the gizmo-embed tool
 pio run -e esp32dev -e esp32dev_wifi_setup  # Compile check of the library and its examples for the ESP32
 ```
 
@@ -195,7 +234,7 @@ Releases are git tags following [semantic versioning](https://semver.org): a bre
 
 ### Releasing a new version
 
-1. Bump `version` in [library.json](library.json) on `feature`.
+1. Bump `version` in [library.json](library.json) and [package.json](package.json) on `feature`.
 2. Merge `feature` into `develop`, then `develop` into `main`.
 3. Run the **Release 📦** workflow by hand (Actions > Release > Run workflow, on `main`). It runs the tests and the ESP32 build, then creates the `vX.Y.Z` tag and a GitHub Release with generated notes.
 

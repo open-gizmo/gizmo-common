@@ -1,0 +1,27 @@
+{
+	"name": "gizmo-common",
+	"version": "2.1.0",
+	"description": "Web tools of the OpenGizmo shared library: gizmo-embed builds a static web app into the firmware.",
+	"homepage": "https://github.com/open-gizmo/gizmo-common",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/open-gizmo/gizmo-common.git"
+	},
+	"license": "MIT",
+	"author": "Mauro Brambilla",
+	"private": true,
+	"type": "module",
+	"engines": {
+		"node": ">=22"
+	},
+	"bin": {
+		"gizmo-embed": "bin/gizmo-embed.js"
+	},
+	"files": [
+		"bin",
+		"tools/embed-assets.js"
+	],
+	"scripts": {
+		"test": "node --test \"tools/*.test.js\""
+	}
+}

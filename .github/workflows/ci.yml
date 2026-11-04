@@ -29,6 +29,16 @@ jobs:
           python -m pip install --upgrade pip
           pip install platformio==6.2.0
 
+      # Set up Node.js
+      - name: 🧰 Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '24.21.0'
+
+      # Run the tests of the gizmo-embed tool
+      - name: 🧪 Run gizmo-embed tests
+        run: npm test
+
       # Run the native tests
       - name: 🧪 Run native tests
         run: pio test -e native
