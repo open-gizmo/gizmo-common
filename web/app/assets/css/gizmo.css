@@ -1,0 +1,2 @@
+/* Tailwind scans the sources of the app only, so the classes of the layer's components and pages have to be added: import this file in the main.css of the app, after "tailwindcss" */
+@source "../../";

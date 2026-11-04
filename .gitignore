@@ -3,3 +3,9 @@
 .vscode/c_cpp_properties.json
 .vscode/launch.json
 .vscode/ipch
+
+# Node and the Nuxt layer
+node_modules
+web/.nuxt
+web/.output
+web/.data

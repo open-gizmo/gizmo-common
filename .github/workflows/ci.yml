@@ -35,8 +35,12 @@ jobs:
         with:
           node-version: '24.21.0'
 
-      # Run the tests of the gizmo-embed tool
-      - name: 🧪 Run gizmo-embed tests
+      # Install the dependencies the web layer is tested with (exact versions, from the lockfile)
+      - name: 📦 Install web dependencies
+        run: npm ci
+
+      # Run the tests of the gizmo-embed tool and of the shared web app layer
+      - name: 🧪 Run gizmo-embed and web layer tests
         run: npm test
 
       # Run the native tests

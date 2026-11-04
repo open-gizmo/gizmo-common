@@ -1,7 +1,7 @@
 {
 	"name": "gizmo-common",
-	"version": "2.1.0",
-	"description": "Web tools of the OpenGizmo shared library: gizmo-embed builds a static web app into the firmware.",
+	"version": "2.2.0",
+	"description": "Web tools of the OpenGizmo shared library: gizmo-embed builds a static web app into the firmware, and the web layer gives the Nuxt apps their common pages.",
 	"homepage": "https://github.com/open-gizmo/gizmo-common",
 	"repository": {
 		"type": "git",
@@ -19,9 +19,51 @@
 	},
 	"files": [
 		"bin",
-		"tools/embed-assets.js"
+		"tools/embed-assets.js",
+		"web",
+		"!web/tests",
+		"!web/.nuxt",
+		"!web/.output",
+		"!web/node_modules",
+		"!web/vitest.config.js",
+		"!web/tsconfig.json",
+		"!web/.nuxtrc"
 	],
 	"scripts": {
-		"test": "node --test \"tools/*.test.js\""
+		"test": "node --test \"tools/*.test.js\" && npm run test:web",
+		"test:web": "cd web && nuxt prepare && vitest run"
+	},
+	"peerDependencies": {
+		"@brumaombra/ui-vintage": "^0.9.36",
+		"@hugeicons/core-free-icons": "^4.3.5",
+		"@hugeicons/vue": "^1.0.8",
+		"@nuxtjs/i18n": "^10.6.0",
+		"nuxt": "^4.5.2",
+		"tailwindcss": "^4.2.4"
+	},
+	"devDependencies": {
+		"@brumaombra/ui-vintage": "0.9.36",
+		"@hugeicons/core-free-icons": "4.3.5",
+		"@hugeicons/vue": "1.0.8",
+		"@nuxt/test-utils": "4.3.2",
+		"@nuxtjs/i18n": "10.6.0",
+		"@vue/test-utils": "2.5.1",
+		"happy-dom": "20.14.5",
+		"nuxt": "4.5.2",
+		"tailwindcss": "4.2.4",
+		"vitest": "5.0.1"
+	},
+	"overrides": {
+		"archiver-utils": {
+			"glob": "13.0.6"
+		},
+		"@intlify/vue-i18n-extensions": {
+			"vue-i18n": "11.4.13",
+			"@intlify/shared": "11.4.13"
+		}
+	},
+	"allowScripts": {
+		"esbuild": true,
+		"vue-demi": true
 	}
 }

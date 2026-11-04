@@ -64,6 +64,7 @@ Uptime 00:02, price 0.08123
 - Automatic reconnection, and a hotspot that turns itself off once the Wi-Fi is back.
 - A web API with the same response format, CORS rules and body size limit on every gizmo.
 - Web apps built into the firmware: the `gizmo-embed` tool gzips a static site into C++, and one call serves it with the right cache headers and a 404 page.
+- A shared Nuxt layer for those web apps: the Wi-Fi pages, the dashboard layout, a device card with restart and forget network, and mock device routes for the dev server.
 - Serial logging with one shared, mutex-guarded buffer, safe to call from any FreeRTOS task.
 - Compile-time checks of `printf`-style format strings against their arguments.
 - `MM:SS` duration formatting that never cuts off long durations.
@@ -81,6 +82,7 @@ Gizmo Common is built around these parts:
 - 📡 **Wi-Fi setup module** (`gizmo/wifi_setup.h`) connects the device, runs the setup hotspot and serves the Wi-Fi API.
 - 🌐 **Web API module** (`gizmo/http.h`) gives every endpoint the same responses, CORS checks and body handling.
 - 🗂️ **Embedded assets module** (`gizmo/embedded_assets.h`) serves a web app built into the firmware, and the **`gizmo-embed` tool** generates it from the app's build.
+- 🧱 **Web app layer** (`web/`) is a Nuxt layer with the pages, components and mock routes every OpenGizmo web app shares.
 - 🧾 **Logging module** (`gizmo/log.h`) wraps the serial port for the ESP32 firmware.
 - 🔢 **Formatting module** (`gizmo/format.h`) turns durations and numbers into text, on the board and on a computer.
 - 🏷️ **Release workflow** tests the library and publishes a `vX.Y.Z` tag that projects pin in their `lib_deps`.
@@ -151,6 +153,7 @@ The library is split into focused modules under `src/gizmo/`:
 - 📡 `wifi_setup.*` runs the Wi-Fi connection, the setup hotspot, the captive portal and the Wi-Fi API.
 - 🌐 `http.*` sends API responses, checks CORS and reads request bodies.
 - 🗂️ `embedded_assets.*` finds and serves the files of an embedded web app.
+- 🧱 `web/` is not firmware: it is the Nuxt layer of the web apps, and talks to the Wi-Fi and device APIs of the modules here.
 - 📟 `device.*` serves the device details, and restarts the device or forgets the network when the web app asks.
 - 🧾 `log.*` prints logs through one shared buffer guarded by a mutex.
 - 🔢 `format.*` formats durations and numbers.
@@ -227,13 +230,78 @@ A project's web app (for example a Nuxt site built with `nuxt generate`) is buil
 - A missing page gets the site's `/404.html` with a 404 status; a missing API call, file or script gets a plain 404.
 - Every file is sent gzipped. Files under `/_nuxt/` have a content hash in their name and are cached for a year, while pages and the build manifest are checked again on every load.
 
+### 🧱 Shared web app layer
+
+The web apps of the OpenGizmo projects share their Wi-Fi setup, error page, dashboard layout and device settings, so they live in a Nuxt layer in [web/](web/) instead of being copied. It gives an app:
+
+- The pages `/wifi` and `/ap-setup` (the setup page of the hotspot), the network picker, the error page and the `dashboard` layout.
+- `<GizmoDeviceCard />` for the settings page: name, firmware, uptime, free memory, saved network, address and signal from `GET /api/device`, with **Restart** and **Forget network** behind a confirmation.
+- `fetchEsp()` (the device address comes from `runtimeConfig.public.espBaseUrl`), the Wi-Fi and device calls, and `handleBackendErrors()`, which turns an `errorId` into a translated message. The Wi-Fi state lives in the layer's own `useGizmoStore()`, never in the store of an app.
+- `<OptionPickerDialog />`, and English and Italian strings under the `gizmo` key, merged with the strings of the app.
+- Mock routes for the dev server (`/api/networks`, `/api/connect`, `/api/check-connection`, `/api/device`, `/api/restart`, `/api/forget-wifi`) that answer like the firmware, in `web/server/utils/gizmo-mock.js`.
+
+To use it, add the library to the web app (like for `gizmo-embed`, pinned to the same tag as `lib_deps`), and the packages the layer needs from the app:
+
+```json
+"devDependencies": {
+	"gizmo-common": "github:open-gizmo/gizmo-common#vX.Y.Z"
+}
+```
+
+The layer needs `nuxt`, `@brumaombra/ui-vintage`, `@nuxtjs/i18n`, `@hugeicons/vue`, `@hugeicons/core-free-icons` and `tailwindcss` in the app (they are its peer dependencies, so the app keeps the versions). Then:
+
+1. **Extend the layer** in `nuxt.config.ts`. Nuxt finds a layer by its folder, so the path has to be written out (`gizmo-common/web` alone is not found).
+
+	```ts
+	export default defineNuxtConfig({
+		extends: ['./node_modules/gizmo-common/web']
+	});
+	```
+
+2. **Give the layer the name, logo and pages of the app** in `app/app.config.ts`. The layout, the setup page and the error page read them, and the Wi-Fi page is added with the word `'wifi'`:
+
+	```ts
+	export default defineAppConfig({
+		gizmo: {
+			name: 'Holiday Strip',
+			logo: '/logo.svg',
+			homePath: '/',
+			nav: [
+				{ id: 'home', labelKey: 'nav.home.label', descriptionKey: 'nav.home.description', icon: Home01Icon, to: '/' },
+				'wifi'
+			]
+		}
+	});
+	```
+
+	The labels are keys of the app's own locale files.
+
+3. **Let Tailwind scan the layer.** Tailwind 4 only reads the sources of the app, so add one line to its `main.css`, after `@import "tailwindcss"`:
+
+	```css
+	@import "gizmo-common/web/app/assets/css/gizmo.css";
+	```
+
+4. **Use the card** in the settings page with `<GizmoDeviceCard />`.
+5. **Name the mock device** (dev server only). The mock routes come with the layer, and an app keeps its own routes for its own endpoints. A Nitro plugin gives the mock the name of the app, and its own mock state can build on `getGizmoMockState()`:
+
+	```js
+	import { configureGizmoMock } from 'gizmo-common/web/server/utils/gizmo-mock.js';
+
+	export default defineNitroPlugin(() => {
+		configureGizmoMock({ name: useAppConfig().gizmo.name });
+	});
+	```
+
+To try the layer before a release, link the folder instead of the tag: `rm -rf node_modules/gizmo-common && ln -s /path/to/gizmo-common node_modules/gizmo-common`.
+
 ### 🧪 Tests
 
-The formatting and embedded assets modules, and the `gizmo-embed` tool, are tested on your computer, no board needed. The Wi-Fi setup and web API need a board, so CI compiles them through the examples:
+The formatting and embedded assets modules, the `gizmo-embed` tool and the web layer are tested on your computer, no board needed. The Wi-Fi setup and web API need a board, so CI compiles them through the examples:
 
 ```bash
 pio test -e native   # Unit tests
-npm test             # Tests of the gizmo-embed tool
+npm test             # Tests of the gizmo-embed tool and of the web layer (run npm ci first)
 pio run -e esp32dev -e esp32dev_wifi_setup  # Compile check of the library and its examples for the ESP32
 ```
 

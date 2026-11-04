@@ -1,0 +1,110 @@
+{
+    "gizmo": {
+        "common": {
+            "close": "Chiudi",
+            "cancel": "Annulla",
+            "refreshing": "Aggiornamento...",
+            "genericError": "Si è verificato un errore",
+            "errorTitle": "Errore"
+        },
+        "layout": {
+            "controlPanel": "Pannello di controllo"
+        },
+        "nav": {
+            "wifi": {
+                "label": "WiFi",
+                "description": "Cerca le reti e connetti il dispositivo"
+            }
+        },
+        "errors": {
+            "pageNotFound": "Pagina non trovata",
+            "pageNotFoundMessage": "La pagina richiesta non esiste o non è più disponibile su questo dispositivo.",
+            "genericTitle": "Qualcosa è andato storto",
+            "genericMessage": "Un errore imprevisto ha interrotto l'interfaccia web.",
+            "backToHome": "Torna alla home",
+            "label": "Errore"
+        },
+        "api": {
+            "wifiWrongCredentials": "Le credenziali Wi-Fi sono errate oppure la rete non è disponibile.",
+            "wifiUnknownStatus": "Il dispositivo ha restituito uno stato di connessione Wi-Fi sconosciuto.",
+            "wifiTimeout": "Il dispositivo non ha completato la connessione Wi-Fi in tempo.",
+            "wifiFailed": "Connessione al WiFi non riuscita",
+            "wifiConnectError": "Si è verificato un errore durante la connessione alla rete Wi-Fi",
+            "backendErrors": {
+                "missing_required_fields": "Mancano alcune informazioni. Controlla i campi e riprova.",
+                "request_body_read_failed": "Il dispositivo non è riuscito a elaborare la richiesta. Riprova.",
+                "invalid_json": "Il dispositivo ha ricevuto dati in un formato non valido. Riprova.",
+                "invalid_connection_field": "Il nome della rete o la password sono troppo lunghi o non validi. Il nome può avere al massimo 32 caratteri e la password 64.",
+                "request_body_too_large": "La richiesta è troppo grande per il dispositivo.",
+                "cors_origin_not_allowed": "Il dispositivo accetta solo richieste dalla sua pagina.",
+                "wifi_scan_failed": "Il dispositivo non è riuscito a cercare le reti Wi-Fi. Riprova.",
+                "wifi_forget_failed": "Il dispositivo non è riuscito a dimenticare la rete Wi-Fi. Riprova."
+            }
+        },
+        "wifi": {
+            "title": "Connetti al WiFi",
+            "currentNetworkLabel": "Rete corrente",
+            "notConnected": "Non connesso",
+            "availableNetworks": "Reti disponibili",
+            "password": "Password",
+            "passwordPlaceholder": "Inserisci la password WiFi",
+            "note": "Il dispositivo proverà immediatamente le credenziali e disattiverà il suo hotspot temporaneo dopo una connessione riuscita.",
+            "connectAction": "Connetti dispositivo",
+            "connectedTitle": "Dispositivo connesso",
+            "connectedMessage": "Il microcontrollore si è connesso a {ssid} ed è disponibile su {hostname} e {ip}.",
+            "connectError": "Si è verificato un errore durante la connessione alla rete Wi-Fi",
+            "refreshError": "Si è verificato un errore durante l'aggiornamento dell'elenco delle reti",
+            "connectConfirmTitle": "Connetti il dispositivo al WiFi",
+            "connectConfirmMessage": "Inviare al dispositivo le credenziali selezionate per {ssid} e passare a quella rete?",
+            "noNetworksTitle": "Nessuna rete trovata",
+            "noNetworksDescription": "Il dispositivo sta ancora cercando, oppure non ci sono reti nelle vicinanze. Riprova tra qualche secondo.",
+            "scanAgain": "Cerca di nuovo",
+            "passwordDialogTitle": "Connetti a {ssid}",
+            "passwordDialogDescription": "Inserisci la password di questa rete."
+        },
+        "apSetup": {
+            "title": "Connetti al WiFi",
+            "connectConfirmTitle": "Connetti ed esci dalla modalità AP",
+            "connectConfirmMessage": "Inviare al dispositivo le credenziali selezionate per {ssid}, connetterlo a quella rete e disattivare l'hotspot temporaneo?"
+        },
+        "device": {
+            "title": "Dispositivo",
+            "networkTitle": "Rete",
+            "name": "Nome",
+            "version": "Firmware",
+            "uptime": "Tempo acceso",
+            "uptimeValue": "{days}g {hours}h {minutes}m",
+            "freeMemory": "Memoria libera",
+            "memoryValue": "{kilobytes} KB",
+            "savedNetwork": "Rete salvata",
+            "notConnected": "Non connesso",
+            "ip": "Indirizzo IP",
+            "hostname": "Nome host",
+            "signal": "Qualità del segnale",
+            "hotspotActive": "L'hotspot di configurazione è aperto: connetti il dispositivo alla tua rete Wi-Fi per chiuderlo.",
+            "restartingHint": "Il dispositivo si sta riavviando. Questa pagina si aggiorna quando risponde di nuovo.",
+            "loading": "Lettura del dispositivo...",
+            "loadErrorTitle": "Impossibile leggere il dispositivo",
+            "loadErrorDescription": "Il dispositivo non ha risposto. Controlla che sia acceso e sulla stessa rete, poi riprova.",
+            "retryAction": "Riprova",
+            "restart": {
+                "action": "Riavvia",
+                "confirmTitle": "Riavviare il dispositivo?",
+                "confirmMessage": "Il dispositivo si riavvierà tra un attimo e non sarà disponibile per qualche secondo. Le tue impostazioni vengono mantenute.",
+                "confirmAction": "Riavvia",
+                "successTitle": "Riavvio in corso",
+                "successMessage": "Il dispositivo si sta riavviando. Sarà di nuovo disponibile tra qualche secondo.",
+                "error": "Non è stato possibile riavviare il dispositivo"
+            },
+            "forgetWifi": {
+                "action": "Dimentica la rete",
+                "confirmTitle": "Dimenticare la rete Wi-Fi?",
+                "confirmMessage": "Il dispositivo dimenticherà la rete salvata e si riavvierà con il suo hotspot di configurazione. Dovrai collegarti all'hotspot per configurare di nuovo il Wi-Fi.",
+                "confirmAction": "Dimentica la rete",
+                "successTitle": "Rete dimenticata",
+                "successMessage": "Il dispositivo ha dimenticato la rete e si sta riavviando con il suo hotspot di configurazione. Collegati all'hotspot per configurare di nuovo il Wi-Fi.",
+                "error": "Non è stato possibile dimenticare la rete Wi-Fi"
+            }
+        }
+    }
+}

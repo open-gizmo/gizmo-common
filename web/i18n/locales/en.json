@@ -1,0 +1,110 @@
+{
+    "gizmo": {
+        "common": {
+            "close": "Close",
+            "cancel": "Cancel",
+            "refreshing": "Refreshing...",
+            "genericError": "An error occurred",
+            "errorTitle": "Error"
+        },
+        "layout": {
+            "controlPanel": "Control Panel"
+        },
+        "nav": {
+            "wifi": {
+                "label": "WiFi",
+                "description": "Scan networks and connect the device"
+            }
+        },
+        "errors": {
+            "pageNotFound": "Page not found",
+            "pageNotFoundMessage": "The page you requested does not exist or is no longer available on this device.",
+            "genericTitle": "Something went wrong",
+            "genericMessage": "An unexpected error interrupted the web interface.",
+            "backToHome": "Back to home",
+            "label": "Error"
+        },
+        "api": {
+            "wifiWrongCredentials": "The Wi-Fi credentials are wrong or the network is unavailable.",
+            "wifiUnknownStatus": "The device returned an unknown Wi-Fi connection status.",
+            "wifiTimeout": "The device did not finish connecting to Wi-Fi in time.",
+            "wifiFailed": "Failed to connect to WiFi",
+            "wifiConnectError": "An error occurred while connecting to the Wi-Fi network",
+            "backendErrors": {
+                "missing_required_fields": "Some information is missing. Please check the form and try again.",
+                "request_body_read_failed": "The device could not process the request. Please try again.",
+                "invalid_json": "The device received data in an unexpected format. Please try again.",
+                "invalid_connection_field": "The network name or password is too long, or not valid. Network names are up to 32 characters and passwords up to 64.",
+                "request_body_too_large": "The request is too large for the device.",
+                "cors_origin_not_allowed": "The device only accepts requests from its own page.",
+                "wifi_scan_failed": "The device could not scan the Wi-Fi networks. Please try again.",
+                "wifi_forget_failed": "The device could not forget the Wi-Fi network. Please try again."
+            }
+        },
+        "wifi": {
+            "title": "Connect to WiFi",
+            "currentNetworkLabel": "Current network",
+            "notConnected": "Not connected",
+            "availableNetworks": "Available networks",
+            "password": "Password",
+            "passwordPlaceholder": "Enter the WiFi password",
+            "note": "The device will try the credentials immediately and disable its temporary hotspot after a successful connection.",
+            "connectAction": "Connect device",
+            "connectedTitle": "Device connected",
+            "connectedMessage": "The microcontroller connected to {ssid} and is available at {hostname} and {ip}.",
+            "connectError": "An error occurred while connecting to the Wi-Fi network",
+            "refreshError": "An error occurred while refreshing the SSID list",
+            "connectConfirmTitle": "Connect device to WiFi",
+            "connectConfirmMessage": "Send the selected credentials for {ssid} to the device and switch it to that network?",
+            "noNetworksTitle": "No networks found yet",
+            "noNetworksDescription": "The device is still scanning, or no network is in range. Scan again in a few seconds.",
+            "scanAgain": "Scan again",
+            "passwordDialogTitle": "Join {ssid}",
+            "passwordDialogDescription": "Enter the password of this network."
+        },
+        "apSetup": {
+            "title": "Connect to WiFi",
+            "connectConfirmTitle": "Connect and leave AP mode",
+            "connectConfirmMessage": "Send the selected credentials for {ssid} to the device, connect to that network, and disable the temporary hotspot?"
+        },
+        "device": {
+            "title": "Device",
+            "networkTitle": "Network",
+            "name": "Name",
+            "version": "Firmware",
+            "uptime": "Uptime",
+            "uptimeValue": "{days}d {hours}h {minutes}m",
+            "freeMemory": "Free memory",
+            "memoryValue": "{kilobytes} KB",
+            "savedNetwork": "Saved network",
+            "notConnected": "Not connected",
+            "ip": "IP address",
+            "hostname": "Hostname",
+            "signal": "Signal quality",
+            "hotspotActive": "The setup hotspot is open: connect the device to your Wi-Fi network to close it.",
+            "restartingHint": "The device is restarting. This page updates when it answers again.",
+            "loading": "Reading the device...",
+            "loadErrorTitle": "Couldn't read the device",
+            "loadErrorDescription": "The device didn't answer. Check that it's on and on the same network, then try again.",
+            "retryAction": "Try again",
+            "restart": {
+                "action": "Restart",
+                "confirmTitle": "Restart the device?",
+                "confirmMessage": "The device will restart in a moment and be unavailable for a few seconds. Your settings are kept.",
+                "confirmAction": "Restart",
+                "successTitle": "Restarting",
+                "successMessage": "The device is restarting. It will be back in a few seconds.",
+                "error": "An error occurred while restarting the device"
+            },
+            "forgetWifi": {
+                "action": "Forget network",
+                "confirmTitle": "Forget the Wi-Fi network?",
+                "confirmMessage": "The device will forget its saved network and restart into its setup hotspot. You will need to connect to the hotspot to set up the Wi-Fi again.",
+                "confirmAction": "Forget network",
+                "successTitle": "Network forgotten",
+                "successMessage": "The device forgot the network and is restarting into its setup hotspot. Connect to the hotspot to set up the Wi-Fi again.",
+                "error": "An error occurred while forgetting the Wi-Fi network"
+            }
+        }
+    }
+}
