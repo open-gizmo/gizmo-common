@@ -1,5 +1,6 @@
 #include <Arduino.h>
 #include <ESPAsyncWebServer.h>
+#include <gizmo/device.h>
 #include <gizmo/http.h>
 #include <gizmo/log.h>
 #include <gizmo/wifi_setup.h>
@@ -13,6 +14,9 @@ void setup() {
 
 	// Join the saved network, or open the "Gizmo-Example" hotspot to set one up
 	gizmo::setupWifi(server, { "Gizmo-Example", "example", "/setup", nullptr });
+
+	// Show the device details, and let the web app restart the device or forget the network
+	gizmo::setupDeviceApi(server, { "Gizmo Example", "dev" });
 
 	// Serve the project's own setup page (a real project serves its own UI here)
 	server.on("/setup", HTTP_GET, [](AsyncWebServerRequest *request) {
@@ -31,7 +35,8 @@ void setup() {
 	server.begin();
 }
 
-// Keep the Wi-Fi connected
+// Keep the Wi-Fi connected, and restart when the web app asks
 void loop() {
 	gizmo::manageWifi();
+	gizmo::manageDevice();
 }

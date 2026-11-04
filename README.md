@@ -118,6 +118,7 @@ Gizmo Common is built around these parts:
 	#include <gizmo/wifi_setup.h> // Wi-Fi setup and captive portal
 	#include <gizmo/http.h>       // Web API helpers
 	#include <gizmo/embedded_assets.h> // Web app built into the firmware
+	#include <gizmo/device.h>          // Device details, restart and forget network
 	#include <gizmo/log.h>        // Logging
 	#include <gizmo/format.h>     // Duration and number formatting
 	```
@@ -150,6 +151,7 @@ The library is split into focused modules under `src/gizmo/`:
 - 📡 `wifi_setup.*` runs the Wi-Fi connection, the setup hotspot, the captive portal and the Wi-Fi API.
 - 🌐 `http.*` sends API responses, checks CORS and reads request bodies.
 - 🗂️ `embedded_assets.*` finds and serves the files of an embedded web app.
+- 📟 `device.*` serves the device details, and restarts the device or forgets the network when the web app asks.
 - 🧾 `log.*` prints logs through one shared buffer guarded by a mutex.
 - 🔢 `format.*` formats durations and numbers.
 
@@ -178,6 +180,18 @@ Every gizmo answers its API the same way, so any UI can talk to any device:
 - Every response has the shape `{ errorId, errorMessage, data }`, with `errorId` and `errorMessage` set to `null` on success.
 - Only same-origin requests are accepted, so other websites can't call the device from a visitor's browser.
 - Request bodies are limited to 2 KB.
+
+### 📟 Device API
+
+`gizmo::setupDeviceApi(server, { "Project Name", "v1.2.3" })` registers the device routes, and `gizmo::manageDevice()` in the loop performs the restarts they ask for:
+
+| Endpoint | Response `data` |
+| --- | --- |
+| `GET /api/device` | `{ name, version, uptimeSeconds, freeHeap, ssid, accessPointActive, ip, hostname, signalQuality }` (the last three once connected, `signalQuality` from 0 to 100) |
+| `POST /api/restart` | `null`, then the device restarts about a second later |
+| `POST /api/forget-wifi` | `null`, then the device forgets the saved network and restarts into the setup hotspot |
+
+`gizmo::scheduleRestart()` restarts the device the same way from a project's own routes.
 
 ### 🗂️ Embedded web apps
 
