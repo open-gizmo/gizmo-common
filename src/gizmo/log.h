@@ -16,13 +16,17 @@ namespace gizmo {
 	// Print log
 	template <typename T>
 	inline void printLog(T message) {
-		if (isLogEnabled()) Serial.print(message);
+		if (isLogEnabled()) {
+			Serial.print(message);
+		}
 	}
 
 	// Print log with newline
 	template <typename T>
 	inline void printLogln(T message) {
-		if (isLogEnabled()) Serial.println(message);
+		if (isLogEnabled()) {
+			Serial.println(message);
+		}
 	}
 
 	// Printf-style log with format string (the compiler checks the arguments against the format)

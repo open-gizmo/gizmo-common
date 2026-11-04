@@ -79,7 +79,9 @@ namespace {
 
 	// Copy a string into a fixed-size field, cutting it off safely if it is too long
 	void copyText(char *destination, const char *text, size_t length) {
-		if (length == 0) return;
+		if (length == 0) {
+			return;
+		}
 		snprintf(destination, length, "%s", text == nullptr ? "" : text);
 	}
 
@@ -108,8 +110,12 @@ namespace {
 		// Write the network to NVS
 		const bool isOpen = preferences.begin(STORAGE_NAMESPACE, false);
 		const bool isSaved = isOpen && preferences.putString(SSID_KEY, credentials.ssid) > 0 && preferences.putString(PASSWORD_KEY, credentials.password) == strlen(credentials.password);
-		if (isOpen) preferences.end();
-		if (!isSaved) gizmo::printLogln("Failed to save the new WiFi credentials");
+		if (isOpen) {
+			preferences.end();
+		}
+		if (!isSaved) {
+			gizmo::printLogln("Failed to save the new WiFi credentials");
+		}
 
 		// Update the RAM copy (even if the flash write failed, so the device keeps using the working network)
 		portENTER_CRITICAL(&credentialsMux);
@@ -178,7 +184,9 @@ namespace {
 
 	// Stop mDNS service if active
 	void stopMdns() {
-		if (!wifiState.mdnsActive) return;
+		if (!wifiState.mdnsActive) {
+			return;
+		}
 		MDNS.end();
 		wifiState.mdnsActive = false;
 		gizmo::printLogln("mDNS stopped");
@@ -226,7 +234,9 @@ namespace {
 		}
 
 		// Answer every DNS name with the hotspot address, so phones open the setup page
-		if (dnsServer == nullptr) dnsServer = new DNSServer();
+		if (dnsServer == nullptr) {
+			dnsServer = new DNSServer();
+		}
 		dnsServer->start(DNS_PORT, "*", WiFi.softAPIP());
 		gizmo::printLogfln("Access point ready on http://%s", WiFi.softAPIP().toString().c_str());
 		return true;
@@ -234,10 +244,14 @@ namespace {
 
 	// Turn the setup hotspot off when requested
 	void manageAccessPointShutdown() {
-		if (!isAccessPointShutdownRequested || !accessPointEnabled) return;
+		if (!isAccessPointShutdownRequested || !accessPointEnabled) {
+			return;
+		}
 
 		// Stop the DNS server and the hotspot
-		if (dnsServer != nullptr) dnsServer->stop();
+		if (dnsServer != nullptr) {
+			dnsServer->stop();
+		}
 		accessPointEnabled = !WiFi.softAPdisconnect();
 		if (!accessPointEnabled) {
 			isAccessPointShutdownRequested = false;
@@ -349,8 +363,12 @@ namespace {
 
 	// Calculate signal quality percentage from RSSI
 	uint8_t calculateSignalQuality(int32_t rssi) {
-		if (rssi <= -100) return 0;
-		if (rssi >= -50) return 100;
+		if (rssi <= -100) {
+			return 0;
+		}
+		if (rssi >= -50) {
+			return 100;
+		}
 		return static_cast<uint8_t>(2 * (rssi + 100));
 	}
 
@@ -409,7 +427,8 @@ namespace {
 			cachedNetworks.swap(scannedNetworks);
 			isScanInProgress = false;
 			xSemaphoreGive(networksMutex);
-		}, ARDUINO_EVENT_WIFI_SCAN_DONE);
+		},
+			ARDUINO_EVENT_WIFI_SCAN_DONE);
 
 		// Mark the callback as registered to avoid registering it multiple times
 		isScanCallbackRegistered = true;
@@ -507,7 +526,9 @@ namespace {
 	// Register GET /api/networks: start a scan and return the networks found so far
 	void setupNetworksRoute(AsyncWebServer &server) {
 		server.on("/api/networks", HTTP_GET, [](AsyncWebServerRequest *request) {
-			if (!gizmo::ensureCorsAllowed(request)) return;
+			if (!gizmo::ensureCorsAllowed(request)) {
+				return;
+			}
 
 			// Start a new scan if not already in progress
 			if (!startAsyncScan()) {
@@ -526,7 +547,8 @@ namespace {
 		server.on("/api/connect", HTTP_POST, [](AsyncWebServerRequest *request) {}, nullptr, [](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total) {
 			// Read the JSON body
 			JsonDocument doc;
-			if (!gizmo::readJsonBody(request, data, len, index, total, doc)) return;
+			if (!gizmo::readJsonBody(request, data, len, index, total, doc)){ return;
+}
 
 			// Validate the credential fields (the password can be empty for open networks)
 			if (!validateCredentialField(request, "ssid", doc["ssid"], gizmo::WIFI_SSID_SIZE - 1, false)
@@ -540,8 +562,7 @@ namespace {
 			// Send the response with the updated connection status
 			JsonDocument responseDoc;
 			responseDoc["connectionStatus"] = static_cast<int>(wifiStatus);
-			gizmo::sendSuccessResponse(request, 200, &responseDoc);
-		});
+			gizmo::sendSuccessResponse(request, 200, &responseDoc); });
 
 		// OPTIONS request for preflighted requests
 		server.on("/api/connect", HTTP_OPTIONS, [](AsyncWebServerRequest *request) {
@@ -552,7 +573,9 @@ namespace {
 	// Register GET /api/check-connection: report the status, and close the hotspot once connected
 	void setupCheckConnectionRoute(AsyncWebServer &server) {
 		server.on("/api/check-connection", HTTP_GET, [](AsyncWebServerRequest *request) {
-			if (!gizmo::ensureCorsAllowed(request)) return;
+			if (!gizmo::ensureCorsAllowed(request)) {
+				return;
+			}
 
 			// Add the connection status
 			const gizmo::WifiStatus status = wifiStatus;
@@ -673,7 +696,9 @@ namespace gizmo {
 		// Remove the saved network from NVS
 		const bool isOpen = preferences.begin(STORAGE_NAMESPACE, false);
 		const bool isCleared = isOpen && preferences.clear();
-		if (isOpen) preferences.end();
+		if (isOpen) {
+			preferences.end();
+		}
 
 		// Clear the RAM copy
 		portENTER_CRITICAL(&credentialsMux);
@@ -685,14 +710,24 @@ namespace gizmo {
 	// Redirect hotspot clients to the setup page (call first in the server's not-found handler; true if it answered)
 	bool handleCaptivePortalRequest(AsyncWebServerRequest *request) {
 		// Only page requests from clients connected through the hotspot (LAN clients keep the normal pages)
-		if (!accessPointEnabled) return false;
-		if (request->method() != HTTP_GET && request->method() != HTTP_HEAD) return false;
-		if (request->client()->localIP() != WiFi.softAPIP()) return false;
+		if (!accessPointEnabled) {
+			return false;
+		}
+		if (request->method() != HTTP_GET && request->method() != HTTP_HEAD) {
+			return false;
+		}
+		if (request->client()->localIP() != WiFi.softAPIP()) {
+			return false;
+		}
 
 		// Never redirect the setup page itself, its files, or the API
 		const String path = request->url();
-		if (path == setupOptions.setupPagePath || path.startsWith("/api/")) return false;
-		if (setupOptions.assetPathPrefix != nullptr && path.startsWith(setupOptions.assetPathPrefix)) return false;
+		if (path == setupOptions.setupPagePath || path.startsWith("/api/")) {
+			return false;
+		}
+		if (setupOptions.assetPathPrefix != nullptr && path.startsWith(setupOptions.assetPathPrefix)) {
+			return false;
+		}
 
 		// Send everything else to the setup page
 		request->redirect(setupOptions.setupPagePath);

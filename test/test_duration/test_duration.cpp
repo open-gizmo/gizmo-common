@@ -21,7 +21,7 @@ void tearDown() {}
 
 // Short durations are shown with two-digit minutes and seconds
 void test_formats_short_durations_as_mm_ss() {
-	char buffer[DURATION_TEXT_SIZE] = {0};
+	char buffer[DURATION_TEXT_SIZE] = { 0 };
 
 	// Expect zero-padded minutes and seconds
 	formatIntoBuffer(0, buffer);
@@ -34,7 +34,7 @@ void test_formats_short_durations_as_mm_ss() {
 
 // One hour is shown as 60 minutes
 void test_formats_one_hour_as_minutes() {
-	char buffer[DURATION_TEXT_SIZE] = {0};
+	char buffer[DURATION_TEXT_SIZE] = { 0 };
 
 	// Format one hour
 	formatIntoBuffer(60 * 60, buffer);
@@ -45,7 +45,7 @@ void test_formats_one_hour_as_minutes() {
 
 // Durations of 100 minutes or more used to be cut off ("100:0") by a 6-byte buffer in the reolink switch
 void test_formats_three_digit_minutes_without_cutting_them() {
-	char buffer[DURATION_TEXT_SIZE] = {0};
+	char buffer[DURATION_TEXT_SIZE] = { 0 };
 
 	// Format 100 minutes
 	formatIntoBuffer(100 * 60, buffer);
@@ -56,7 +56,7 @@ void test_formats_three_digit_minutes_without_cutting_them() {
 
 // The documented buffer size fits the largest possible value
 void test_buffer_size_fits_any_duration() {
-	char buffer[DURATION_TEXT_SIZE] = {0};
+	char buffer[DURATION_TEXT_SIZE] = { 0 };
 
 	// Format the largest value a uint32_t can hold
 	formatIntoBuffer(UINT32_MAX, buffer);

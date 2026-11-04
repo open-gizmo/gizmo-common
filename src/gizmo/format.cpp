@@ -19,21 +19,27 @@ namespace gizmo {
 	// Choose decimals so small values keep their significant digits (2 from 1 up, 0.08123 below with the defaults)
 	int getSignificantDecimals(double value, int significantDigits, int minDecimals, int maxDecimals) {
 		const double magnitude = fabs(value);
-		if (!isfinite(magnitude) || magnitude >= 1.0 || magnitude == 0.0) return minDecimals;
+		if (!isfinite(magnitude) || magnitude >= 1.0 || magnitude == 0.0) {
+			return minDecimals;
+		}
 
 		// Count the zeros right after the decimal point (0.08 has one), then add the significant digits
 		const int leadingZeroCount = -static_cast<int>(floor(log10(magnitude))) - 1;
 		const int decimals = leadingZeroCount + significantDigits;
 
 		// Keep the result within the requested range
-		if (decimals < minDecimals) return minDecimals;
+		if (decimals < minDecimals) {
+			return minDecimals;
+		}
 		return decimals > maxDecimals ? maxDecimals : decimals;
 	}
 
 	// Format a number with thousands separators, cutting it off safely if the buffer is too small
 	void formatNumber(double value, int decimals, NumberFormat numberFormat, char *output, size_t length) {
 		// Nothing to write into
-		if (length == 0) return;
+		if (length == 0) {
+			return;
+		}
 
 		// Choose the separators and normalize the input (values that aren't numbers are shown as zero)
 		const char decimalSeparator = numberFormat == NumberFormat::US ? '.' : ',';

@@ -20,7 +20,9 @@ namespace {
 	// Format a log line into the shared buffer and print it, with or without a newline
 	void printFormattedLog(bool addNewline, const char *format, va_list arguments) {
 		// Skip everything when logging is off or the mutex is missing
-		if (!logEnabled || logMutex == nullptr) return;
+		if (!logEnabled || logMutex == nullptr) {
+			return;
+		}
 
 		// Format and print the line while holding the buffer
 		xSemaphoreTake(logMutex, portMAX_DELAY);

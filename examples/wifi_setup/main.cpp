@@ -21,7 +21,9 @@ void setup() {
 
 	// Redirect hotspot clients to the setup page, and answer 404 otherwise
 	server.onNotFound([](AsyncWebServerRequest *request) {
-		if (gizmo::handleCaptivePortalRequest(request)) return;
+		if (gizmo::handleCaptivePortalRequest(request)) {
+			return;
+		}
 		gizmo::sendErrorResponse(request, 404, "not_found", "Not found");
 	});
 

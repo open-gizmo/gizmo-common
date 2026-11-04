@@ -9,7 +9,9 @@ namespace {
 
 	// Get the value of a specific header
 	String getHeaderValue(AsyncWebServerRequest *request, const char *headerName) {
-		if (!request->hasHeader(headerName)) return String();
+		if (!request->hasHeader(headerName)) {
+			return String();
+		}
 		return request->getHeader(headerName)->value();
 	}
 
@@ -158,7 +160,9 @@ namespace gizmo {
 
 	// Free the memory of a gathered request body
 	void releaseRequestBody(AsyncWebServerRequest *request) {
-		if (request->_tempObject == nullptr) return;
+		if (request->_tempObject == nullptr) {
+			return;
+		}
 		free(request->_tempObject);
 		request->_tempObject = nullptr;
 	}

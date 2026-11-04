@@ -11,14 +11,14 @@ namespace {
 	constexpr size_t NUMBER_BUFFER_SIZE = 30;
 
 	// Format a number into a fresh buffer and check the result
-	void assertFormats(const char* expected, double value, int decimals, NumberFormat numberFormat) {
-		char output[NUMBER_BUFFER_SIZE] = {0};
+	void assertFormats(const char *expected, double value, int decimals, NumberFormat numberFormat) {
+		char output[NUMBER_BUFFER_SIZE] = { 0 };
 		gizmo::formatNumber(value, decimals, numberFormat, output, sizeof(output));
 		TEST_ASSERT_EQUAL_STRING(expected, output);
 	}
 
 	// Format a value with its significant decimals and check the result
-	void assertFormatsPrice(const char* expected, double value, NumberFormat numberFormat) {
+	void assertFormatsPrice(const char *expected, double value, NumberFormat numberFormat) {
 		assertFormats(expected, value, gizmo::getSignificantDecimals(value), numberFormat);
 	}
 }
