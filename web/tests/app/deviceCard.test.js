@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { defineComponent } from 'vue';
 import { setResponseStatus } from 'h3';
 import { mountSuspended, registerEndpoint } from '@nuxt/test-utils/runtime';
 import GizmoDeviceCard from '~/components/gizmo/GizmoDeviceCard.vue';
@@ -115,6 +116,49 @@ describe('GizmoDeviceCard', () => {
         expect(wrapper.text()).toContain('192.168.1.42');
         expect(wrapper.text()).toContain('gizmo-ticker.local');
         expect(wrapper.text()).toContain('74%');
+    });
+
+    // Long values (the host name of the firmware, the name of a network) used to be cut with "..." by the row
+    it('shows long values whole, wrapping them in their row', async () => {
+        device = { ...buildDevice(), name: 'Gizmo Reolink Switch', ssid: 'A Very Long Network Name 5GHz', hostname: 'gizmo-reolink-switch.local' };
+        const wrapper = await mountSuspended(GizmoDeviceCard);
+        mountedWrappers.push(wrapper);
+        await vi.waitFor(() => expect(wrapper.text()).toContain('gizmo-reolink-switch.local'));
+
+        // Expect each long value in full, in a span that is not truncated
+        for (const value of ['Gizmo Reolink Switch', 'A Very Long Network Name 5GHz', 'gizmo-reolink-switch.local']) {
+            const span = wrapper.findAll('span').find(candidate => candidate.text() === value);
+            expect(span, value).toBeDefined();
+            expect(span.classes()).not.toContain('truncate');
+        }
+    });
+
+    // The actions are one group with a title, with the destructive rows last, and an app can add its own destructive rows
+    it('puts the actions in one titled group, with the rows of the app last', async () => {
+        const wrapper = await mountSuspended(defineComponent({
+            components: { GizmoDeviceCard },
+            template: '<GizmoDeviceCard><template #danger-rows><li data-test="app-row"><button type="button">Reset saved settings</button></li></template></GizmoDeviceCard>'
+        }));
+        mountedWrappers.push(wrapper);
+        await vi.waitFor(() => expect(wrapper.text()).toContain('Gizmo Ticker'));
+
+        // Expect the group titled Actions to hold restart, forget network and the row of the app, in this order
+        const group = wrapper.findAll('section').find(section => section.find('h2').exists() && section.find('h2').text() === 'Actions');
+        expect(group).toBeDefined();
+        expect(group.findAll('li').map(row => row.text())).toEqual(['Restart', 'Forget network', 'Reset saved settings']);
+    });
+
+    // The actions of the app don't depend on what the device says about itself, so they stay when it can't be read
+    it('keeps the rows of the app when the device does not answer', async () => {
+        isDeviceAvailable = false;
+        const wrapper = await mountSuspended(defineComponent({
+            components: { GizmoDeviceCard },
+            template: '<GizmoDeviceCard><template #danger-rows><li><button type="button">Reset saved settings</button></li></template></GizmoDeviceCard>'
+        }));
+        mountedWrappers.push(wrapper);
+        await vi.waitFor(() => expect(wrapper.text()).toContain('Couldn\'t read the device'));
+        expect(wrapper.text()).toContain('Reset saved settings');
+        expect(wrapper.text()).not.toContain('Forget network');
     });
 
     // The saved network opens the Wi-Fi page

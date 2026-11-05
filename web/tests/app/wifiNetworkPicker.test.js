@@ -76,6 +76,10 @@ describe('WifiNetworkPicker', () => {
         await vi.waitFor(() => expect(scanCount).toBe(1));
         expect(wrapper.text()).toContain('No networks found yet');
 
+        // Expect the empty state as a row of the group, with its explanation under the group
+        expect(wrapper.find('section h2').text()).toBe('Available networks');
+        expect(wrapper.text()).toContain('The device is still scanning');
+
         // Expect the networks after the automatic retry, and no more scans
         await vi.waitFor(() => expect(wrapper.text()).toContain('Office Fiber'), { timeout: 5000 });
         expect(scanCount).toBe(2);

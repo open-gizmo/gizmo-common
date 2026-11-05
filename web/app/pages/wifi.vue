@@ -2,7 +2,7 @@
 import { computed, onMounted } from 'vue';
 import WifiFullSignalIcon from '@hugeicons/core-free-icons/WifiFullSignalIcon';
 import { ListGroup, ListRow } from '@brumaombra/ui-vintage/list';
-import { PageHeader } from '@brumaombra/ui-vintage/page-header';
+import GizmoPage from '../components/gizmo/GizmoPage.vue';
 import WifiNetworkPicker from '../components/wifi/WifiNetworkPicker.vue';
 import { loadGizmoDevice, useGizmoStore } from '../composables/useGizmoStore.js';
 
@@ -24,16 +24,13 @@ definePageMeta({
 </script>
 
 <template>
-    <div class="mx-auto w-full max-w-2xl space-y-6">
-        <!-- Title -->
-        <PageHeader :title="t('gizmo.wifi.title')" size="medium" />
-
-        <!-- Current network -->
+    <GizmoPage :title="t('gizmo.wifi.title')">
+        <!-- Current network (the name wraps, a network name can be long) -->
         <ListGroup :title="t('gizmo.wifi.currentNetworkLabel')">
-            <ListRow :label="currentNetworkLabel" :icon="WifiFullSignalIcon" icon-tile />
+            <ListRow :label="currentNetworkLabel" :icon="WifiFullSignalIcon" />
         </ListGroup>
 
         <!-- Networks found by the device, and the connection -->
         <WifiNetworkPicker :confirm-title="t('gizmo.wifi.connectConfirmTitle')" confirm-message-key="gizmo.wifi.connectConfirmMessage" />
-    </div>
+    </GizmoPage>
 </template>

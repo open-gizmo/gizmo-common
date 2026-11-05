@@ -237,7 +237,11 @@ A project's web app (for example a Nuxt site built with `nuxt generate`) is buil
 The web apps of the OpenGizmo projects share their Wi-Fi setup, error page, dashboard layout and device settings, so they live in a Nuxt layer in [web/](web/) instead of being copied. It gives an app:
 
 - The pages `/wifi` and `/ap-setup` (the setup page of the hotspot), the network picker, the error page and the `dashboard` layout.
-- `<GizmoDeviceCard />` for the settings page: name, firmware, uptime, free memory, saved network, address and signal from `GET /api/device`, with **Restart** and **Forget network** behind a confirmation.
+- `<GizmoDeviceCard />` for the settings page: name, firmware, uptime, free memory, saved network, address and signal from `GET /api/device`, as the groups Device, Network and Actions, with **Restart** and **Forget network** behind a confirmation. The destructive rows come last: an app adds its own (for example "Reset saved settings") in the `danger-rows` slot, as `<ListRow danger action />` rows, and they stay even when the device can't be read. Long values (host name, network name) wrap instead of being cut.
+- The page layout of KrowdCall, so every page looks the same: `<GizmoPage :title>` is the centered column with the title (`hide-title` keeps the h1 for screen readers only, for pages that open with a main card), and the content is `ListGroup`s of `ListRow`s with a short title, a help text in `hint`, and the main button full width under its group. Inside a group:
+  - `<GizmoSliderRow v-model label :icon :min :max :step :value-text />`: a slider that stays inline, with the label and the current value on the first line and the slider under them.
+  - `<GizmoInputRow id v-model label :icon type placeholder autocomplete :maxlength :disabled />`: a text field, with the label on the first line and the field under it.
+  - `<GizmoValueRow :label :value :icon :to :action :danger />`: a `ListRow` whose value wraps instead of being cut with "...", for long values.
 - `fetchEsp()` (the device address comes from `runtimeConfig.public.espBaseUrl`), the Wi-Fi and device calls, and `handleBackendErrors()`, which turns an `errorId` into a translated message. The Wi-Fi state lives in the layer's own `useGizmoStore()`, never in the store of an app.
 - `<OptionPickerDialog />`, and English and Italian strings under the `gizmo` key, merged with the strings of the app.
 - Mock routes for the dev server (`/api/networks`, `/api/connect`, `/api/check-connection`, `/api/device`, `/api/restart`, `/api/forget-wifi`) that answer like the firmware, in `web/server/utils/gizmo-mock.js`.
@@ -284,7 +288,7 @@ The layer needs `nuxt`, `@brumaombra/ui-vintage`, `@nuxtjs/i18n`, `@hugeicons/vu
 	@import "gizmo-common/web/app/assets/css/gizmo.css";
 	```
 
-4. **Use the card** in the settings page with `<GizmoDeviceCard />`.
+4. **Use the card** in the settings page with `<GizmoDeviceCard />`, and the components above for the pages of the app, so they follow the same layout.
 5. **Name the mock device** (dev server only). The mock routes come with the layer, and an app keeps its own routes for its own endpoints. A Nitro plugin gives the mock the name of the app and the hostname of its firmware (always the project name, for example `gizmo-ticker`, so the device is at `http://gizmo-ticker.local`), and its own mock state can build on `getGizmoMockState()`:
 
 	```js

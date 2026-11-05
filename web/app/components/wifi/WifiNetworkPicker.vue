@@ -5,11 +5,11 @@ import CheckmarkCircle02Icon from '@hugeicons/core-free-icons/CheckmarkCircle02I
 import LockIcon from '@hugeicons/core-free-icons/LockIcon';
 import RefreshIcon from '@hugeicons/core-free-icons/RefreshIcon';
 import WifiFullSignalIcon from '@hugeicons/core-free-icons/WifiFullSignalIcon';
+import WifiOff01Icon from '@hugeicons/core-free-icons/WifiOff01Icon';
 import { HugeiconsIcon } from '@hugeicons/vue';
 import { setBusy } from '@brumaombra/ui-vintage/busy-indicator';
 import { Button } from '@brumaombra/ui-vintage/button';
 import { showConfirmDialog } from '@brumaombra/ui-vintage/confirm-dialog';
-import { EmptyStateCard } from '@brumaombra/ui-vintage/empty-state-card';
 import { Field, FieldContent, FieldLabel } from '@brumaombra/ui-vintage/field';
 import { Input } from '@brumaombra/ui-vintage/input';
 import { ListGroup, ListRow } from '@brumaombra/ui-vintage/list';
@@ -152,8 +152,8 @@ const handlePasswordSubmit = () => {
 
 <template>
     <div class="space-y-6">
-        <!-- Networks found by the device -->
-        <ListGroup v-if="networks.length" :title="t('gizmo.wifi.availableNetworks')" :hint="t('gizmo.wifi.note')">
+        <!-- Networks found by the device (until the first scan finds one, a single row says so) -->
+        <ListGroup :title="t('gizmo.wifi.availableNetworks')" :hint="networks.length ? t('gizmo.wifi.note') : t('gizmo.wifi.noNetworksDescription')">
             <ListRow v-for="network in networks"
                 :key="network.ssid"
                 :label="network.ssid"
@@ -161,10 +161,8 @@ const handlePasswordSubmit = () => {
                 :value="`${network.quality}%`"
                 action
                 @click="handleNetworkPress(network)" />
+            <ListRow v-if="!networks.length" :label="t('gizmo.wifi.noNetworksTitle')" :icon="WifiOff01Icon" />
         </ListGroup>
-
-        <!-- No networks yet (the first scan can come back empty) -->
-        <EmptyStateCard v-else :icon="WifiFullSignalIcon" :title="t('gizmo.wifi.noNetworksTitle')" :description="t('gizmo.wifi.noNetworksDescription')" />
 
         <!-- Scan again -->
         <Button variant="secondary" class="w-full" :loading="isLoading" @click="handleRefreshPress">

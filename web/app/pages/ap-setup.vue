@@ -2,9 +2,9 @@
 import { computed } from 'vue';
 import { BackgroundGrid } from '@brumaombra/ui-vintage/background-grid';
 import { LanguageSelector } from '@brumaombra/ui-vintage/language-selector';
-import { PageHeader } from '@brumaombra/ui-vintage/page-header';
 import { ThemeSelector } from '@brumaombra/ui-vintage/theme-selector';
 import GizmoAppLogo from '../components/gizmo/GizmoAppLogo.vue';
+import GizmoPage from '../components/gizmo/GizmoPage.vue';
 import WifiNetworkPicker from '../components/wifi/WifiNetworkPicker.vue';
 
 const { locale, locales, setLocale, t } = useI18n();
@@ -35,11 +35,10 @@ const handleSelectLanguage = async language => {
                 </div>
             </div>
 
-            <!-- Title -->
-            <PageHeader :title="t('gizmo.apSetup.title')" size="medium" />
-
-            <!-- Networks found by the device, and the connection -->
-            <WifiNetworkPicker :confirm-title="t('gizmo.apSetup.connectConfirmTitle')" confirm-message-key="gizmo.apSetup.connectConfirmMessage" />
+            <!-- Title, and the networks found by the device with the connection -->
+            <GizmoPage :title="t('gizmo.apSetup.title')">
+                <WifiNetworkPicker :confirm-title="t('gizmo.apSetup.connectConfirmTitle')" confirm-message-key="gizmo.apSetup.connectConfirmMessage" />
+            </GizmoPage>
         </main>
     </div>
 </template>

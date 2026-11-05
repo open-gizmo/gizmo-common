@@ -69,6 +69,7 @@
         },
         "device": {
             "title": "Dispositivo",
+            "actionsTitle": "Azioni",
             "networkTitle": "Rete",
             "name": "Nome",
             "version": "Firmware",

@@ -25,6 +25,7 @@ import { ResponsiveDialog } from '@brumaombra/ui-vintage/responsive-dialog';
 import { forgetWifi, getDevice, restartDevice } from '../../composables/useGizmoApi.js';
 import { loadGizmoDevice, useGizmoStore } from '../../composables/useGizmoStore.js';
 import { handleBackendErrors, splitUptime } from '../../composables/useGizmoUtils.js';
+import GizmoValueRow from './GizmoValueRow.vue';
 
 const FIRST_CHECK_DELAY = 4000; // Milliseconds the device needs to go down and boot again
 const CHECK_INTERVAL = 2000; // Milliseconds between the checks of a device that is starting again
@@ -140,7 +141,7 @@ onBeforeUnmount(() => clearTimeout(checkTimer));
 </script>
 
 <template>
-    <div>
+    <div class="space-y-6">
         <!-- The details couldn't be read: offer to try again -->
         <EmptyStateCard v-if="!device && gizmoStore.isDeviceLoadFailed" :icon="Alert02Icon" :title="t('gizmo.device.loadErrorTitle')" :description="t('gizmo.device.loadErrorDescription')">
             <template #action>
@@ -157,7 +158,7 @@ onBeforeUnmount(() => clearTimeout(checkTimer));
         <div v-else class="space-y-6">
             <!-- Device -->
             <ListGroup :title="t('gizmo.device.title')" :hint="isRestarting ? t('gizmo.device.restartingHint') : ''">
-                <ListRow :label="t('gizmo.device.name')" :icon="CpuIcon" :value="device.name" />
+                <GizmoValueRow :label="t('gizmo.device.name')" :icon="CpuIcon" :value="device.name" />
                 <ListRow :label="t('gizmo.device.version')" :icon="Tag01Icon" :value="device.version" />
                 <ListRow :label="t('gizmo.device.uptime')" :icon="Clock01Icon" :value="uptimeLabel" />
                 <ListRow :label="t('gizmo.device.freeMemory')" :icon="RamMemoryIcon" :value="freeMemoryLabel" />
@@ -165,18 +166,24 @@ onBeforeUnmount(() => clearTimeout(checkTimer));
 
             <!-- Network (the address and the signal exist only while connected) -->
             <ListGroup :title="t('gizmo.device.networkTitle')" :hint="device.accessPointActive ? t('gizmo.device.hotspotActive') : ''">
-                <ListRow :label="t('gizmo.device.savedNetwork')" :icon="WifiFullSignalIcon" :value="savedNetworkLabel" to="/wifi" />
+                <GizmoValueRow :label="t('gizmo.device.savedNetwork')" :icon="WifiFullSignalIcon" :value="savedNetworkLabel" to="/wifi" />
                 <ListRow v-if="isConnected" :label="t('gizmo.device.ip')" :icon="Globe02Icon" :value="device.ip" />
-                <ListRow v-if="isConnected && device.hostname" :label="t('gizmo.device.hostname')" :icon="Link01Icon" :value="device.hostname" />
+                <GizmoValueRow v-if="isConnected && device.hostname" :label="t('gizmo.device.hostname')" :icon="Link01Icon" :value="device.hostname" />
                 <ListRow v-if="isConnected" :label="t('gizmo.device.signal')" :icon="SignalFull02Icon" :value="`${device.signalQuality}%`" />
             </ListGroup>
 
-            <!-- Actions (not while the device is restarting) -->
-            <ListGroup v-if="!isRestarting">
+            <!-- Actions, the destructive ones last (not while the device is restarting). An app adds its own destructive rows in the danger-rows slot -->
+            <ListGroup v-if="!isRestarting" :title="t('gizmo.device.actionsTitle')">
                 <ListRow :label="t('gizmo.device.restart.action')" :icon="ReloadIcon" action @click="handleActionPress('restart')" />
                 <ListRow v-if="device.ssid" :label="t('gizmo.device.forgetWifi.action')" :icon="WifiOff01Icon" action danger @click="handleActionPress('forgetWifi')" />
+                <slot name="danger-rows" />
             </ListGroup>
         </div>
+
+        <!-- Without the details (the device didn't answer) only the rows of the app are left (its own actions don't depend on what the device says about itself) -->
+        <ListGroup v-if="!device && gizmoStore.isDeviceLoadFailed && $slots['danger-rows']" :title="t('gizmo.device.actionsTitle')">
+            <slot name="danger-rows" />
+        </ListGroup>
 
         <!-- Confirmation of the action (a sheet on phones, a dialog on larger screens) -->
         <ResponsiveDialog v-model:open="isDialogOpen" :title="t(`gizmo.device.${selectedAction}.confirmTitle`)" :description="t(`gizmo.device.${selectedAction}.confirmMessage`)">
