@@ -10,7 +10,7 @@ const { default: getCheckConnection } = await import('../../server/api/check-con
 const { default: getDevice } = await import('../../server/api/device/index.get.js');
 const { default: postRestart } = await import('../../server/api/restart/index.post.js');
 const { default: postForgetWifi } = await import('../../server/api/forget-wifi/index.post.js');
-const { buildMockHostname, configureGizmoMock, getGizmoMockState, getSignalQuality, resetGizmoMockState } = await import('../../server/utils/gizmo-mock.js');
+const { buildMockHostname, configureGizmoMock, getGizmoMockState, getMockHostname, getSignalQuality, resetGizmoMockState } = await import('../../server/utils/gizmo-mock.js');
 
 // Build a real h3 request event, with a JSON body when one is given (a string is sent as it is)
 const buildEvent = (body = undefined) => {
@@ -252,6 +252,14 @@ describe('mock device details', () => {
         expect(buildMockHostname('  Gizmo   Reolink Switch! ')).toBe('gizmo-reolink-switch.local');
         expect(buildMockHostname(undefined)).toBe('gizmo.local');
         expect(buildMockHostname('')).toBe('gizmo.local');
+    });
+
+    // An app whose firmware hostname isn't its display name sets the hostname itself
+    it('uses the firmware hostname the app sets', () => {
+        configureGizmoMock({ name: 'Reolink Switch', hostname: 'gizmo-reolink-switch' });
+        expect(getMockHostname(getGizmoMockState())).toBe('gizmo-reolink-switch.local');
+        configureGizmoMock({ name: 'Holiday Strip' });
+        expect(getMockHostname(getGizmoMockState())).toBe('holiday-strip.local');
     });
 });
 

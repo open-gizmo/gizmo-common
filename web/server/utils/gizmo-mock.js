@@ -29,6 +29,7 @@ const scannedNetworks = () => ([
 // State of the demo device the dev server starts with (already set up on a network): the apps add their own fields to it
 const createState = () => ({
     name: 'Gizmo', // Name the device introduces itself with (an app sets it with configureGizmoMock)
+    hostname: '', // mDNS name of the firmware, without .local (an app sets it with configureGizmoMock; empty builds it from the name)
     startedAt: Date.now(),
     savedSsid: 'BrumaLab WiFi',
     isAccessPointActive: false, // The setup hotspot is only open while the device has no working network
@@ -48,9 +49,11 @@ export const getGizmoMockState = () => {
     return globalThis.__gizmoMockState;
 };
 
-// Name the mock device like the app (call it once when the dev server starts, from a Nitro plugin of the app)
-export const configureGizmoMock = ({ name }) => {
-    getGizmoMockState().name = name;
+// Name the mock device like the app and its firmware (call it once when the dev server starts, from a Nitro plugin of the app)
+export const configureGizmoMock = ({ name, hostname = '' }) => {
+    const state = getGizmoMockState();
+    state.name = name;
+    state.hostname = hostname;
 };
 
 // Start again from the demo device (the dev server never needs it, the tests do)
@@ -188,6 +191,11 @@ export const buildMockHostname = name => {
     return `${slug || 'gizmo'}.local`;
 };
 
+// Get the hostname the mock device answers with: the firmware's one when the app set it, otherwise built from the name
+export const getMockHostname = state => {
+    return state.hostname ? `${state.hostname}.local` : buildMockHostname(state.name);
+};
+
 // Build the details of the device like GET /api/device (the address, the hostname and the signal only once connected)
 export const buildDevicePayload = ({ state, now = Date.now() }) => {
     const payload = {
@@ -203,7 +211,7 @@ export const buildDevicePayload = ({ state, now = Date.now() }) => {
     if (state.connectionStatus === wifiStatus.CONNECTED) {
         const savedNetwork = scannedNetworks().find(network => network.ssid === state.savedSsid);
         payload.ip = MOCK_IP;
-        payload.hostname = buildMockHostname(state.name);
+        payload.hostname = getMockHostname(state);
         payload.signalQuality = getSignalQuality(savedNetwork?.signal ?? -60);
     }
 

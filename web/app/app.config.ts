@@ -4,6 +4,9 @@ export default defineAppConfig({
         // Name shown next to the logo (sidebar, setup page, error page)
         name: 'Gizmo',
 
+        // mDNS name of the firmware, without .local (always the project name, for example "gizmo-ticker"; the mock answers with it)
+        hostname: '',
+
         // Logo shown next to the name (a path of the public folder)
         logo: '/logo.svg',
 

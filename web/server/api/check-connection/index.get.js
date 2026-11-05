@@ -1,5 +1,5 @@
 import { defineEventHandler } from 'h3';
-import { MOCK_IP, advanceMockConnection, buildMockHostname, createSuccessResponse, getGizmoMockState, handleEspMockError, wifiStatus } from '../../utils/gizmo-mock.js';
+import { MOCK_IP, advanceMockConnection, createSuccessResponse, getGizmoMockState, getMockHostname, handleEspMockError, wifiStatus } from '../../utils/gizmo-mock.js';
 
 export default defineEventHandler(async event => {
     try {
@@ -14,7 +14,7 @@ export default defineEventHandler(async event => {
                 connectionStatus: state.connectionStatus,
                 ssid: state.savedSsid,
                 ip: MOCK_IP,
-                hostname: buildMockHostname(state.name)
+                hostname: getMockHostname(state)
             });
         }
 

@@ -123,6 +123,7 @@ Gizmo Common is built around these parts:
 	#include <gizmo/device.h>          // Device details, restart and forget network
 	#include <gizmo/log.h>        // Logging
 	#include <gizmo/format.h>     // Duration and number formatting
+	#include <gizmo/text.h>       // Safe text copies
 	```
 
 3. **Start from the examples.** [examples/basic](examples/basic/main.cpp) shows logging and formatting, and [examples/wifi_setup](examples/wifi_setup/main.cpp) shows a complete Wi-Fi setup. Each function is documented in its header under [src/gizmo/](src/gizmo/).
@@ -157,6 +158,7 @@ The library is split into focused modules under `src/gizmo/`:
 - 📟 `device.*` serves the device details, and restarts the device or forgets the network when the web app asks.
 - 🧾 `log.*` prints logs through one shared buffer guarded by a mutex.
 - 🔢 `format.*` formats durations and numbers.
+- 🔤 `text.*` copies texts into fixed buffers, always cut to fit and ended.
 
 ### 📡 Wi-Fi setup
 
@@ -283,13 +285,14 @@ The layer needs `nuxt`, `@brumaombra/ui-vintage`, `@nuxtjs/i18n`, `@hugeicons/vu
 	```
 
 4. **Use the card** in the settings page with `<GizmoDeviceCard />`.
-5. **Name the mock device** (dev server only). The mock routes come with the layer, and an app keeps its own routes for its own endpoints. A Nitro plugin gives the mock the name of the app, and its own mock state can build on `getGizmoMockState()`:
+5. **Name the mock device** (dev server only). The mock routes come with the layer, and an app keeps its own routes for its own endpoints. A Nitro plugin gives the mock the name of the app and the hostname of its firmware (always the project name, for example `gizmo-ticker`, so the device is at `http://gizmo-ticker.local`), and its own mock state can build on `getGizmoMockState()`:
 
 	```js
 	import { configureGizmoMock } from 'gizmo-common/web/server/utils/gizmo-mock.js';
 
 	export default defineNitroPlugin(() => {
-		configureGizmoMock({ name: useAppConfig().gizmo.name });
+		const { name, hostname } = useAppConfig().gizmo;
+		configureGizmoMock({ name, hostname });
 	});
 	```
 
