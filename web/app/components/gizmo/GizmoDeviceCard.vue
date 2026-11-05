@@ -25,7 +25,6 @@ import { ResponsiveDialog } from '@brumaombra/ui-vintage/responsive-dialog';
 import { forgetWifi, getDevice, restartDevice } from '../../composables/useGizmoApi.js';
 import { loadGizmoDevice, useGizmoStore } from '../../composables/useGizmoStore.js';
 import { handleBackendErrors, splitUptime } from '../../composables/useGizmoUtils.js';
-import GizmoValueRow from './GizmoValueRow.vue';
 
 const FIRST_CHECK_DELAY = 4000; // Milliseconds the device needs to go down and boot again
 const CHECK_INTERVAL = 2000; // Milliseconds between the checks of a device that is starting again
@@ -158,7 +157,7 @@ onBeforeUnmount(() => clearTimeout(checkTimer));
         <div v-else class="space-y-6">
             <!-- Device -->
             <ListGroup :title="t('gizmo.device.title')" :hint="isRestarting ? t('gizmo.device.restartingHint') : ''">
-                <GizmoValueRow :label="t('gizmo.device.name')" :icon="CpuIcon" :value="device.name" />
+                <ListRow :label="t('gizmo.device.name')" :icon="CpuIcon" :value="device.name" wrap-value />
                 <ListRow :label="t('gizmo.device.version')" :icon="Tag01Icon" :value="device.version" />
                 <ListRow :label="t('gizmo.device.uptime')" :icon="Clock01Icon" :value="uptimeLabel" />
                 <ListRow :label="t('gizmo.device.freeMemory')" :icon="RamMemoryIcon" :value="freeMemoryLabel" />
@@ -166,9 +165,9 @@ onBeforeUnmount(() => clearTimeout(checkTimer));
 
             <!-- Network (the address and the signal exist only while connected) -->
             <ListGroup :title="t('gizmo.device.networkTitle')" :hint="device.accessPointActive ? t('gizmo.device.hotspotActive') : ''">
-                <GizmoValueRow :label="t('gizmo.device.savedNetwork')" :icon="WifiFullSignalIcon" :value="savedNetworkLabel" to="/wifi" />
+                <ListRow :label="t('gizmo.device.savedNetwork')" :icon="WifiFullSignalIcon" :value="savedNetworkLabel" to="/wifi" wrap-value />
                 <ListRow v-if="isConnected" :label="t('gizmo.device.ip')" :icon="Globe02Icon" :value="device.ip" />
-                <GizmoValueRow v-if="isConnected && device.hostname" :label="t('gizmo.device.hostname')" :icon="Link01Icon" :value="device.hostname" />
+                <ListRow v-if="isConnected && device.hostname" :label="t('gizmo.device.hostname')" :icon="Link01Icon" :value="device.hostname" wrap-value />
                 <ListRow v-if="isConnected" :label="t('gizmo.device.signal')" :icon="SignalFull02Icon" :value="`${device.signalQuality}%`" />
             </ListGroup>
 
