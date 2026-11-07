@@ -36,6 +36,9 @@ namespace {
 	}
 }
 
+// How long the log waits at boot for a USB host to open the serial port
+constexpr unsigned long SERIAL_WAIT_MS = 1500;
+
 namespace gizmo {
 	// Start logging (call first in setup, before any other task can log)
 	void initLog(bool isEnabled, uint32_t baudRate) {
@@ -46,7 +49,10 @@ namespace gizmo {
 		// Start the serial port when logging is enabled
 		if (logEnabled) {
 			Serial.begin(baudRate);
-			while (!Serial) {
+
+			// Give a USB host a moment to open the port, so the boot logs reach it, but never wait for one: on boards whose Serial is the chip's own USB (ESP32-S3, C3), it stays closed on a charger, and waiting for it stopped the device at boot
+			const unsigned long startedAt = millis();
+			while (!Serial && millis() - startedAt < SERIAL_WAIT_MS) {
 				delay(10);
 			}
 		}
