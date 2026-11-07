@@ -49,6 +49,9 @@ namespace gizmo {
 		// Start the serial port when logging is enabled
 		if (logEnabled) {
 			Serial.begin(baudRate);
+#if ARDUINO_USB_CDC_ON_BOOT && ARDUINO_USB_MODE
+			Serial.setTxTimeoutMs(0); // The chip's own USB: drop log lines when no one reads them, instead of waiting for room (it slowed the loop on a computer with no serial monitor open)
+#endif
 
 			// Give a USB host a moment to open the port, so the boot logs reach it, but never wait for one: on boards whose Serial is the chip's own USB (ESP32-S3, C3), it stays closed on a charger, and waiting for it stopped the device at boot
 			const unsigned long startedAt = millis();
