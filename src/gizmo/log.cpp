@@ -36,6 +36,11 @@ namespace {
 	}
 }
 
+// Debug builds set PIO_DEV_MODE=1 (PlatformIO passes a project's build flags to its libraries too)
+#ifndef PIO_DEV_MODE
+#define PIO_DEV_MODE 0
+#endif
+
 // How long the log waits at boot for a USB host to open the serial port
 constexpr unsigned long SERIAL_WAIT_MS = 1500;
 
@@ -59,6 +64,16 @@ namespace gizmo {
 				delay(10);
 			}
 		}
+	}
+
+	// Whether the build is a debug one
+	bool isDevMode() {
+		return PIO_DEV_MODE != 0;
+	}
+
+	// Start logging in debug builds only
+	void initLog() {
+		initLog(isDevMode());
 	}
 
 	// Check whether logging is enabled

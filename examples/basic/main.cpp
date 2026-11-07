@@ -4,7 +4,7 @@
 
 // Show the library at work: log a formatted duration and price once per second
 void setup() {
-	gizmo::initLog(true);
+	gizmo::initLog(); // On in debug builds (-D PIO_DEV_MODE=1, set in this library's platformio.ini)
 	gizmo::printLogln("gizmo-common basic example");
 }
 

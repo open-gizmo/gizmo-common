@@ -49,4 +49,4 @@ jobs:
 
       # Compile the library and its examples for the ESP32
       - name: 🛠️ Build for ESP32
-        run: pio run -e esp32dev -e esp32dev_wifi_setup
+        run: pio run -e esp32dev -e esp32dev_wifi_setup -e xiao_esp32s3

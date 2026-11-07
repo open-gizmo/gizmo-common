@@ -7,7 +7,13 @@
 #include <Arduino.h>
 
 namespace gizmo {
-	// Start logging (call first in setup, before any other task can log)
+	// Whether the build is a debug one: -D PIO_DEV_MODE=1 in its build flags (off by default, so released firmware never logs)
+	bool isDevMode();
+
+	// Start logging in debug builds only, the OpenGizmo convention (call first in setup, before any other task can log)
+	void initLog();
+
+	// Start logging, or not, whatever the build (call first in setup, before any other task can log)
 	void initLog(bool isEnabled, uint32_t baudRate = 115200);
 
 	// Check whether logging is enabled

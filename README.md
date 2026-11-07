@@ -65,7 +65,7 @@ Uptime 00:02, price 0.08123
 - A web API with the same response format, CORS rules and body size limit on every gizmo.
 - Web apps built into the firmware: the `gizmo-embed` tool gzips a static site into C++, and one call serves it with the right cache headers and a 404 page.
 - A shared Nuxt layer for those web apps: the Wi-Fi pages, the dashboard layout, a device card with restart and forget network, and mock device routes for the dev server.
-- Serial logging with one shared, mutex-guarded buffer, safe to call from any FreeRTOS task.
+- Serial logging with one shared, mutex-guarded buffer, safe to call from any FreeRTOS task, on in debug builds only (`-D PIO_DEV_MODE=1`), so released firmware never logs, and never waits for or blocks on a USB serial port.
 - Compile-time checks of `printf`-style format strings against their arguments.
 - `MM:SS` duration formatting that never cuts off long durations.
 - Number formatting with US (`1,234.56`) or EU (`1.234,56`) separators, written into your buffer and cut off safely.
@@ -83,7 +83,7 @@ Gizmo Common is built around these parts:
 - 🌐 **Web API module** (`gizmo/http.h`) gives every endpoint the same responses, CORS checks and body handling.
 - 🗂️ **Embedded assets module** (`gizmo/embedded_assets.h`) serves a web app built into the firmware, and the **`gizmo-embed` tool** generates it from the app's build.
 - 🧱 **Web app layer** (`web/`) is a Nuxt layer with the pages, components and mock routes every OpenGizmo web app shares.
-- 🧾 **Logging module** (`gizmo/log.h`) wraps the serial port for the ESP32 firmware.
+- 🧾 **Logging module** (`gizmo/log.h`) wraps the serial port for the ESP32 firmware. Call `gizmo::initLog()` first in `setup()`: it logs only when the project's build flags set `PIO_DEV_MODE=1` (a debug environment, or an ignored `platformio_secrets.ini`), and `gizmo::isDevMode()` tells the rest of the firmware the same. `initLog(bool)` still decides by itself.
 - 🔢 **Formatting module** (`gizmo/format.h`) turns durations and numbers into text, on the board and on a computer.
 - 🏷️ **Release workflow** tests the library and publishes a `vX.Y.Z` tag that projects pin in their `lib_deps`.
 

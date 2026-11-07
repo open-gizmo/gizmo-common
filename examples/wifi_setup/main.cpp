@@ -10,7 +10,7 @@ AsyncWebServer server(80);
 
 // Start logging, the Wi-Fi setup and the web server
 void setup() {
-	gizmo::initLog(true);
+	gizmo::initLog(); // On in debug builds (-D PIO_DEV_MODE=1, set in this library's platformio.ini)
 
 	// Join the saved network, or open the "Gizmo-Example" hotspot to set one up
 	gizmo::setupWifi(server, { "Gizmo-Example", "example", "/setup", nullptr });
