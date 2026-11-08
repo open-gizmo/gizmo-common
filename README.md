@@ -184,7 +184,11 @@ Every gizmo answers its API the same way, so any UI can talk to any device:
 
 - Every response has the shape `{ errorId, errorMessage, data }`, with `errorId` and `errorMessage` set to `null` on success.
 - Only same-origin requests are accepted, so other websites can't call the device from a visitor's browser.
+- On the local network, only requests under the device's own name or address are accepted (its IP, `<hostname>` or `<hostname>.local`), so a website can't point its own name at the device to get around the origin check (DNS rebinding). The error is `host_not_allowed`.
+- Through the open setup hotspot, which anyone nearby can join, only the Wi-Fi setup answers: `/api/networks`, `/api/connect`, `/api/check-connection` and `/api/device`. Everything else gets `setup_hotspot_only`.
 - Request bodies are limited to 2 KB.
+
+Every endpoint calls `gizmo::ensureCorsAllowed(request)` first, which applies all of these, so a project's own routes get them too.
 
 ### 📟 Device API
 
@@ -197,6 +201,21 @@ Every gizmo answers its API the same way, so any UI can talk to any device:
 | `POST /api/forget-wifi` | `null`, then the device forgets the saved network and restarts into the setup hotspot |
 
 `gizmo::scheduleRestart()` restarts the device the same way from a project's own routes.
+
+### 🔁 Factory reset
+
+Holding the XIAO ESP32-S3's **BOOT** button for 10 seconds while the device runs forgets the Wi-Fi and the project's settings, then restarts into the setup hotspot. The BOOT button only selects the flashing mode at power-up, so the firmware can read it once running; only someone at the device can reset it. The RESET button is a hardware reset, and still only restarts the board.
+
+```cpp
+gizmo::FactoryResetOptions resetOptions;
+resetOptions.clearSettings = clearMySettings; // Required: forget the project's own settings
+resetOptions.onHold = showResetCountdown; // Optional: the time left, about every 250 ms
+resetOptions.onCancel = hideResetCountdown; // Optional: released too early
+resetOptions.canReset = isSafeToReset; // Optional: refuse it right now (onRefused is called)
+gizmo::setupFactoryReset(resetOptions);
+```
+
+`gizmo::manageDevice()` in the loop watches the button.
 
 ### 🗂️ Embedded web apps
 

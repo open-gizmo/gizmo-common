@@ -33,8 +33,14 @@ namespace gizmo {
 	// Send an error response ({ errorId, errorMessage, data: null })
 	void sendErrorResponse(AsyncWebServerRequest *request, uint16_t statusCode, const char *errorId, const char *errorMessage);
 
-	// Allow same-origin requests only, and send a 403 response otherwise
+	// Allow requests from the device's own page only, and send a 403 response otherwise (every API endpoint calls it first): same origin, and what the request guard allows
 	bool ensureCorsAllowed(AsyncWebServerRequest *request);
+
+	// A check every API request must pass besides its origin: the ID of the error to send, or nullptr to let it through (setupWifi installs one)
+	using RequestGuard = const char *(*)(AsyncWebServerRequest *request);
+
+	// Install the request guard (nullptr removes it)
+	void setRequestGuard(RequestGuard guard);
 
 	// Answer a CORS preflight request
 	void sendCorsPreflightResponse(AsyncWebServerRequest *request, const char *allowedMethods);

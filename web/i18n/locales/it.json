@@ -37,6 +37,8 @@
                 "invalid_connection_field": "Il nome della rete o la password sono troppo lunghi o non validi. Il nome può avere al massimo 32 caratteri e la password 64.",
                 "request_body_too_large": "La richiesta è troppo grande per il dispositivo.",
                 "cors_origin_not_allowed": "Il dispositivo accetta solo richieste dalla sua pagina.",
+                "host_not_allowed": "Il dispositivo accetta solo richieste con il suo nome o il suo indirizzo.",
+                "setup_hotspot_only": "Dall'hotspot di configurazione, il dispositivo offre solo la configurazione del Wi-Fi.",
                 "wifi_scan_failed": "Il dispositivo non è riuscito a cercare le reti Wi-Fi. Riprova.",
                 "wifi_forget_failed": "Il dispositivo non è riuscito a dimenticare la rete Wi-Fi. Riprova."
             }

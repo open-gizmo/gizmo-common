@@ -600,6 +600,52 @@ namespace {
 	}
 }
 
+namespace {
+	/******************************** Request guard ********************************/
+
+	// API paths a client of the setup hotspot may use: the Wi-Fi setup, and the device details (anyone nearby can join the open hotspot, so nothing else answers there)
+	const char *const HOTSPOT_API_PATHS[] = { "/api/networks", "/api/connect", "/api/check-connection", "/api/device" };
+
+	// Whether a request came in through the setup hotspot
+	bool isHotspotRequest(AsyncWebServerRequest *request) {
+		return accessPointEnabled && request->client() != nullptr && request->client()->localIP() == WiFi.softAPIP();
+	}
+
+	// Whether the Host header names this device: its IP address, or its mDNS name (with or without .local), with any port
+	bool isDeviceHost(String host) {
+		host.toLowerCase();
+		const int portStart = host.indexOf(':');
+		if (portStart >= 0) {
+			host = host.substring(0, portStart);
+		}
+		if (host.length() == 0) {
+			return false;
+		}
+		if (host == WiFi.localIP().toString()) {
+			return true;
+		}
+		String name = setupOptions.hostname != nullptr ? setupOptions.hostname : "";
+		name.toLowerCase();
+		return name.length() != 0 && (host == name || host == name + ".local");
+	}
+
+	// The check every API request passes besides its origin (see gizmo::setRequestGuard)
+	const char *guardRequest(AsyncWebServerRequest *request) {
+		// Through the hotspot: the setup only (the phone may have loaded the page under any name, so the Host isn't checked there)
+		if (isHotspotRequest(request)) {
+			for (const char *path : HOTSPOT_API_PATHS) {
+				if (request->url() == path) {
+					return nullptr;
+				}
+			}
+			return "setup_hotspot_only";
+		}
+
+		// Through the local network: only under the device's own name or address, so a website that points its own name at the device (DNS rebinding) is refused
+		return isDeviceHost(request->host()) ? nullptr : "host_not_allowed";
+	}
+}
+
 namespace gizmo {
 	// Start the Wi-Fi setup and register its web API (/api/networks, /api/connect, /api/check-connection)
 	void setupWifi(AsyncWebServer &server, const WifiSetupOptions &options) {
@@ -608,6 +654,9 @@ namespace gizmo {
 		// Station only: the hotspot starts when needed, with its name (WIFI_AP_STA would turn it on right away, open and named ESP_XXXXXX)
 		WiFi.mode(WIFI_STA);
 		loadSavedCredentials();
+
+		// Refuse API requests under other names, and anything but the setup through the hotspot
+		gizmo::setRequestGuard(guardRequest);
 
 		// Register the web API
 		setupNetworksRoute(server);

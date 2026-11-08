@@ -7,6 +7,9 @@ namespace {
 	constexpr const char *DEFAULT_CORS_HEADERS = "Content-Type";
 	constexpr const char *DEFAULT_CORS_METHODS = "GET, POST, OPTIONS";
 
+	// The check every API request must pass besides its origin (none until setupWifi installs one)
+	gizmo::RequestGuard requestGuard = nullptr;
+
 	// Get the value of a specific header
 	String getHeaderValue(AsyncWebServerRequest *request, const char *headerName) {
 		if (!request->hasHeader(headerName)) {
@@ -96,22 +99,32 @@ namespace gizmo {
 		sendResponse(request, statusCode, doc);
 	}
 
-	// Allow same-origin requests only, and send a 403 response otherwise
+	// Allow requests from the device's own page only, and send a 403 response otherwise
 	bool ensureCorsAllowed(AsyncWebServerRequest *request) {
-		if (isAllowedCorsOrigin(request)) {
-			return true;
+		// Refuse other origins (a browser sends Origin on every cross-site request)
+		if (!isAllowedCorsOrigin(request)) {
+			sendErrorResponse(request, 403, "cors_origin_not_allowed", "CORS origin not allowed");
+			return false;
 		}
 
-		// Send error response for disallowed CORS origin
-		sendErrorResponse(request, 403, "cors_origin_not_allowed", "CORS origin not allowed");
-		return false;
+		// Refuse what the request guard refuses (a name that isn't the device's, or more than the setup through the hotspot)
+		const char *refusal = requestGuard != nullptr ? requestGuard(request) : nullptr;
+		if (refusal != nullptr) {
+			sendErrorResponse(request, 403, refusal, refusal);
+			return false;
+		}
+		return true;
+	}
+
+	// Install the request guard
+	void setRequestGuard(RequestGuard guard) {
+		requestGuard = guard;
 	}
 
 	// Answer a CORS preflight request
 	void sendCorsPreflightResponse(AsyncWebServerRequest *request, const char *allowedMethods) {
-		// Check if CORS is allowed for this request
-		if (!isAllowedCorsOrigin(request)) {
-			sendErrorResponse(request, 403, "cors_origin_not_allowed", "CORS origin not allowed");
+		// Check if the request is allowed (ensureCorsAllowed sends the error)
+		if (!ensureCorsAllowed(request)) {
 			return;
 		}
 
