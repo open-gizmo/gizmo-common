@@ -252,7 +252,7 @@ namespace {
 		if (dnsServer != nullptr) {
 			dnsServer->stop();
 		}
-		accessPointEnabled = !WiFi.softAPdisconnect();
+		accessPointEnabled = !WiFi.softAPdisconnect(true); // Switch the hotspot off: clearing its settings alone leaves it on, open and named ESP_XXXXXX
 		if (!accessPointEnabled) {
 			isAccessPointShutdownRequested = false;
 		}
@@ -605,8 +605,8 @@ namespace gizmo {
 	void setupWifi(AsyncWebServer &server, const WifiSetupOptions &options) {
 		setupOptions = options;
 
-		// Station and hotspot together (the hotspot only starts when needed)
-		WiFi.mode(WIFI_AP_STA);
+		// Station only: the hotspot starts when needed, with its name (WIFI_AP_STA would turn it on right away, open and named ESP_XXXXXX)
+		WiFi.mode(WIFI_STA);
 		loadSavedCredentials();
 
 		// Register the web API
