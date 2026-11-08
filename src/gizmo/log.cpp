@@ -4,6 +4,7 @@
 #ifdef ARDUINO
 
 #include <cstdarg>
+#include <esp_log.h>
 #include <freertos/FreeRTOS.h>
 #include <freertos/semphr.h>
 
@@ -51,18 +52,22 @@ namespace gizmo {
 		logMutex = xSemaphoreCreateMutex();
 		logEnabled = isEnabled;
 
-		// Start the serial port when logging is enabled
-		if (logEnabled) {
-			Serial.begin(baudRate);
+		// With logging off, silence ESP-IDF's own messages too (its Wi-Fi and system libraries print their errors to the console, which the chip's USB port mirrors)
+		if (!logEnabled) {
+			esp_log_level_set("*", ESP_LOG_NONE);
+			return;
+		}
+
+		// Start the serial port
+		Serial.begin(baudRate);
 #if ARDUINO_USB_CDC_ON_BOOT && ARDUINO_USB_MODE
-			Serial.setTxTimeoutMs(0); // The chip's own USB: drop log lines when no one reads them, instead of waiting for room (it slowed the loop on a computer with no serial monitor open)
+		Serial.setTxTimeoutMs(0); // The chip's own USB: drop log lines when no one reads them, instead of waiting for room (it slowed the loop on a computer with no serial monitor open)
 #endif
 
-			// Give a USB host a moment to open the port, so the boot logs reach it, but never wait for one: on boards whose Serial is the chip's own USB (ESP32-S3, C3), it stays closed on a charger, and waiting for it stopped the device at boot
-			const unsigned long startedAt = millis();
-			while (!Serial && millis() - startedAt < SERIAL_WAIT_MS) {
-				delay(10);
-			}
+		// Give a USB host a moment to open the port, so the boot logs reach it, but never wait for one: on boards whose Serial is the chip's own USB (ESP32-S3, C3), it stays closed on a charger, and waiting for it stopped the device at boot
+		const unsigned long startedAt = millis();
+		while (!Serial && millis() - startedAt < SERIAL_WAIT_MS) {
+			delay(10);
 		}
 	}
 

@@ -65,7 +65,7 @@ Uptime 00:02, price 0.08123
 - A web API with the same response format, CORS rules and body size limit on every gizmo.
 - Web apps built into the firmware: the `gizmo-embed` tool gzips a static site into C++, and one call serves it with the right cache headers and a 404 page.
 - A shared Nuxt layer for those web apps: the Wi-Fi pages, the dashboard layout, a device card with restart and forget network, and mock device routes for the dev server.
-- Serial logging with one shared, mutex-guarded buffer, safe to call from any FreeRTOS task, on in debug builds only (`-D PIO_DEV_MODE=1`), so released firmware never logs, and never waits for or blocks on a USB serial port.
+- Serial logging with one shared, mutex-guarded buffer, safe to call from any FreeRTOS task, on in debug builds only (`-D PIO_DEV_MODE=1`), so released firmware never logs (ESP-IDF's own messages are silenced too), and never waits for or blocks on a USB serial port. Only the chip's boot messages, printed before the firmware starts, remain.
 - Compile-time checks of `printf`-style format strings against their arguments.
 - `MM:SS` duration formatting that never cuts off long durations.
 - Number formatting with US (`1,234.56`) or EU (`1.234,56`) separators, written into your buffer and cut off safely.
