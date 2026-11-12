@@ -13,7 +13,8 @@ namespace {
 		{ "/", "text/html; charset=utf-8", CONTENTS, sizeof(CONTENTS) },
 		{ "/404.html", "text/html; charset=utf-8", CONTENTS, sizeof(CONTENTS) },
 		{ "/settings", "text/html; charset=utf-8", CONTENTS, sizeof(CONTENTS) },
-		{ "/_nuxt/entry.abc123.js", "application/javascript; charset=utf-8", CONTENTS, sizeof(CONTENTS) }
+		{ "/_nuxt/entry.abc123.js", "application/javascript; charset=utf-8", CONTENTS, sizeof(CONTENTS) },
+		{ "/logo.svg", "image/svg+xml", CONTENTS, sizeof(CONTENTS) }
 	};
 	constexpr size_t ASSET_COUNT = sizeof(ASSETS) / sizeof(ASSETS[0]);
 
@@ -89,6 +90,27 @@ void test_pages_and_manifest_are_revalidated() {
 	TEST_ASSERT_EQUAL_STRING("no-cache", gizmo::getAssetCacheControl("/_nuxt/builds/latest.json"));
 }
 
+/******************************** Captive portal ********************************/
+
+// Scripts, stylesheets and images outside /_nuxt/ (the logo) are files the captive portal never redirects
+void test_files_are_embedded_files() {
+	TEST_ASSERT_TRUE(gizmo::isEmbeddedFile(ASSETS, ASSET_COUNT, "/logo.svg"));
+	TEST_ASSERT_TRUE(gizmo::isEmbeddedFile(ASSETS, ASSET_COUNT, "/_nuxt/entry.abc123.js"));
+}
+
+// Pages are still redirected to the setup page, the root included (phones probe it to find the portal)
+void test_pages_are_not_embedded_files() {
+	TEST_ASSERT_FALSE(gizmo::isEmbeddedFile(ASSETS, ASSET_COUNT, "/"));
+	TEST_ASSERT_FALSE(gizmo::isEmbeddedFile(ASSETS, ASSET_COUNT, "/settings"));
+}
+
+// Missing paths (the phones' portal probes) and a missing asset list are never files
+void test_missing_paths_are_not_embedded_files() {
+	TEST_ASSERT_FALSE(gizmo::isEmbeddedFile(ASSETS, ASSET_COUNT, "/hotspot-detect.html"));
+	TEST_ASSERT_FALSE(gizmo::isEmbeddedFile(ASSETS, ASSET_COUNT, "/generate_204"));
+	TEST_ASSERT_FALSE(gizmo::isEmbeddedFile(nullptr, 0, "/logo.svg"));
+}
+
 // Run all the embedded asset tests
 int main() {
 	UNITY_BEGIN();
@@ -101,5 +123,8 @@ int main() {
 	RUN_TEST(test_dot_in_folder_is_still_a_page);
 	RUN_TEST(test_hashed_files_are_cached);
 	RUN_TEST(test_pages_and_manifest_are_revalidated);
+	RUN_TEST(test_files_are_embedded_files);
+	RUN_TEST(test_pages_are_not_embedded_files);
+	RUN_TEST(test_missing_paths_are_not_embedded_files);
 	return UNITY_END();
 }

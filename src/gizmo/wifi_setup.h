@@ -5,6 +5,7 @@
 #ifdef ARDUINO
 
 #include <ESPAsyncWebServer.h>
+#include "embedded_assets.h"
 
 namespace gizmo {
 	// Credential sizes from the Wi-Fi standard (32-character SSID, 64-character password, plus the terminator)
@@ -48,7 +49,8 @@ namespace gizmo {
 	bool clearWifiCredentials();
 
 	// Redirect hotspot clients to the setup page (call first in the server's not-found handler; true if it answered)
-	bool handleCaptivePortalRequest(AsyncWebServerRequest *request);
+	// With the web app's embedded assets, its files outside assetPathPrefix (the logo, for example) are never redirected either
+	bool handleCaptivePortalRequest(AsyncWebServerRequest *request, const EmbeddedAsset *assets = nullptr, size_t assetCount = 0);
 }
 
 #endif

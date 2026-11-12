@@ -757,7 +757,7 @@ namespace gizmo {
 	}
 
 	// Redirect hotspot clients to the setup page (call first in the server's not-found handler; true if it answered)
-	bool handleCaptivePortalRequest(AsyncWebServerRequest *request) {
+	bool handleCaptivePortalRequest(AsyncWebServerRequest *request, const EmbeddedAsset *assets, size_t assetCount) {
 		// Only page requests from clients connected through the hotspot (LAN clients keep the normal pages)
 		if (!accessPointEnabled) {
 			return false;
@@ -775,6 +775,9 @@ namespace gizmo {
 			return false;
 		}
 		if (setupOptions.assetPathPrefix != nullptr && path.startsWith(setupOptions.assetPathPrefix)) {
+			return false;
+		}
+		if (isEmbeddedFile(assets, assetCount, path.c_str())) {
 			return false;
 		}
 

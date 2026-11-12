@@ -20,6 +20,9 @@ namespace gizmo {
 	// Find the asset served at a path, ignoring one trailing slash (nullptr if there is none)
 	const EmbeddedAsset *findEmbeddedAsset(const EmbeddedAsset *assets, size_t count, const char *path);
 
+	// Check whether a path is an embedded file that is not a page (a script, a stylesheet, an image), which the captive portal never redirects
+	bool isEmbeddedFile(const EmbeddedAsset *assets, size_t count, const char *path);
+
 	// Check whether a missing path should get the 404 page: a page request, not an API call or a missing script
 	bool isDocumentPath(const char *path, bool acceptsHtml);
 

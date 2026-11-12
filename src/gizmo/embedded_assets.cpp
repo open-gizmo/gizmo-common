@@ -43,6 +43,12 @@ namespace gizmo {
 		return nullptr;
 	}
 
+	// Check whether a path is an embedded file that is not a page (a script, a stylesheet, an image), which the captive portal never redirects
+	bool isEmbeddedFile(const EmbeddedAsset *assets, size_t count, const char *path) {
+		const EmbeddedAsset *asset = findEmbeddedAsset(assets, count, path);
+		return asset != nullptr && asset->contentType != nullptr && !startsWith(asset->contentType, "text/html");
+	}
+
 	// Check whether a missing path should get the 404 page: a page request, not an API call or a missing script
 	bool isDocumentPath(const char *path, bool acceptsHtml) {
 		if (path == nullptr) {

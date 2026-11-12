@@ -240,6 +240,10 @@ A project's web app (for example a Nuxt site built with `nuxt generate`) is buil
 	#include "webui/generated_assets.h"
 
 	server.onNotFound([](AsyncWebServerRequest *request) {
+		// With the Wi-Fi setup, send hotspot clients to the setup page first: given the assets, it never redirects the app's files
+		if (gizmo::handleCaptivePortalRequest(request, EMBEDDED_ASSETS, EMBEDDED_ASSET_COUNT)) {
+			return;
+		}
 		if (gizmo::handleEmbeddedAssetRequest(request, EMBEDDED_ASSETS, EMBEDDED_ASSET_COUNT)) {
 			return;
 		}
@@ -249,6 +253,7 @@ A project's web app (for example a Nuxt site built with `nuxt generate`) is buil
 
 - Pages are served at their folder (`settings/index.html` at `/settings`), with or without a trailing slash.
 - A missing page gets the site's `/404.html` with a 404 status; a missing API call, file or script gets a plain 404.
+- Through the setup hotspot, every request that isn't the setup page, the API, a file under the app's asset prefix or one of its embedded files (the logo, for example) is redirected to the setup page, so the phone opens it as a captive portal.
 - Every file is sent gzipped. Files under `/_nuxt/` have a content hash in their name and are cached for a year, while pages and the build manifest are checked again on every load.
 
 ### 🧱 Shared web app layer
