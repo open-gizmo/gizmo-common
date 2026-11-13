@@ -1,6 +1,6 @@
 {
 	"name": "gizmo-common",
-	"version": "2.4.1",
+	"version": "2.5.0",
 	"description": "Web tools of the OpenGizmo shared library: gizmo-embed builds a static web app into the firmware, and the web layer gives the Nuxt apps their common pages.",
 	"homepage": "https://github.com/open-gizmo/gizmo-common",
 	"repository": {
