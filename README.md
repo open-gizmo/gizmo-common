@@ -349,9 +349,9 @@ Releases are git tags following [semantic versioning](https://semver.org): a bre
 
 ### Releasing a new version
 
-1. Bump `version` in [library.json](library.json) and [package.json](package.json) on `feature`.
+1. Bump `version` in [library.json](library.json) and [package.json](package.json) on `feature`, and move the notes under **Unreleased** in [CHANGELOG.md](CHANGELOG.md) under a `## vX.Y.Z - YYYY-MM-DD` heading.
 2. Merge `feature` into `develop`, then `develop` into `main`.
-3. Run the **Release 📦** workflow by hand (Actions > Release > Run workflow, on `main`). It runs the tests and the ESP32 build, then creates the `vX.Y.Z` tag and a GitHub Release with generated notes.
+3. Run the **Release 📦** workflow by hand (Actions > Release > Run workflow, on `main`). It runs the tests and the ESP32 build, then creates the `vX.Y.Z` tag and a GitHub Release with the notes of `CHANGELOG.md` (it stops before tagging when the version has no notes, or notes are left under Unreleased).
 
 Pushing a `v*` tag yourself works too: the workflow then checks that it matches `library.json` before releasing.
 

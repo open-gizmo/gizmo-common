@@ -74,6 +74,10 @@ jobs:
             exit 1
           fi
 
+      # Stop before anything is tagged or released if CHANGELOG.md has no notes for this version: they become the body of the GitHub release
+      - name: 📝 Read the release notes
+        run: python3 .github/scripts/release_notes.py --version "${{ steps.release.outputs.tag }}" --output release-notes.md
+
       # Tag the released commit for a manual run, only once the tests passed
       - name: 🏷️ Push version tag
         if: github.event_name == 'workflow_dispatch'
@@ -83,10 +87,11 @@ jobs:
           git tag -a "${{ steps.release.outputs.tag }}" -m "${{ steps.release.outputs.version }}"
           git push origin "${{ steps.release.outputs.tag }}"
 
-      # Create a GitHub Release for the same tag with generated release notes
+      # Create a GitHub Release for the same tag, with the notes of CHANGELOG.md
       - name: 📦 Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.release.outputs.tag }}
           name: ${{ steps.release.outputs.tag }}
+          body_path: release-notes.md
           generate_release_notes: true
