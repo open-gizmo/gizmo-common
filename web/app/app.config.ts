@@ -10,6 +10,9 @@ export default defineAppConfig({
         // Logo shown next to the name (a path of the public folder)
         logo: '/logo.svg',
 
+        // Logo for the dark theme (optional: without it, the same logo shows in both themes)
+        logoDark: '',
+
         // Page the logo and the "back" button of the error page go to
         homePath: '/',
 

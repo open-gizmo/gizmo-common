@@ -35,6 +35,7 @@ const handleSelectLanguage = async language => {
 <template>
     <DashboardShell :app-name="appConfig.gizmo.name"
         :app-logo="appConfig.gizmo.logo"
+        :app-logo-dark="appConfig.gizmo.logoDark"
         :app-link-to="appConfig.gizmo.homePath"
         :compact="true"
         :sidebar-sections="sidebarSections"

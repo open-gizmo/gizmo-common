@@ -295,6 +295,7 @@ The layer needs `nuxt`, `@brumaombra/ui-vintage`, `@nuxtjs/i18n`, `@hugeicons/vu
 		gizmo: {
 			name: 'Holiday Strip',
 			logo: '/logo.svg',
+			logoDark: '/logo-dark.svg', // Optional: the logo for the dark theme
 			homePath: '/',
 			nav: [
 				{ id: 'home', labelKey: 'nav.home.label', descriptionKey: 'nav.home.description', icon: Home01Icon, to: '/' },

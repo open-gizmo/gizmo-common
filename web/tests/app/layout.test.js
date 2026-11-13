@@ -85,6 +85,27 @@ describe('app name and logo', () => {
         expect(wrapper.find('img[src="/test-logo.svg"]').exists()).toBe(true);
     });
 
+    // An app with a dark theme logo gets both logos, in the sidebar and on the setup page (the theme shows one of them)
+    it('shows the dark theme logo of the app when it has one', async () => {
+        appConfig.gizmo.logo = '/test-logo.svg';
+        appConfig.gizmo.logoDark = '/test-logo-dark.svg';
+        appConfig.gizmo.nav = [homeItem, 'wifi'];
+        const layout = await mountSuspended(DashboardLayout);
+        expect(layout.html()).toContain('/test-logo.svg');
+        expect(layout.html()).toContain('/test-logo-dark.svg');
+        const setupPage = await mountSuspended(ApSetupPage);
+        expect(setupPage.find('img[src="/test-logo.svg"]').classes()).toContain('dark:hidden');
+        expect(setupPage.find('img[src="/test-logo-dark.svg"]').classes()).toContain('dark:block');
+    });
+
+    // Without a dark theme logo, the setup page shows the one logo in both themes
+    it('shows one logo in both themes without a dark theme logo', async () => {
+        appConfig.gizmo.logo = '/test-logo.svg';
+        const setupPage = await mountSuspended(ApSetupPage);
+        expect(setupPage.findAll('img')).toHaveLength(1);
+        expect(setupPage.find('img[src="/test-logo.svg"]').classes()).not.toContain('dark:hidden');
+    });
+
     // The error page shows the brand too
     it('shows the name of the app on the error page', async () => {
         appConfig.gizmo.name = 'Test Strip';
