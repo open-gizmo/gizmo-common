@@ -258,10 +258,10 @@ A project's web app (for example a Nuxt site built with `nuxt generate`) is buil
 
 ### 🧱 Shared web app layer
 
-The web apps of the OpenGizmo projects share their Wi-Fi setup, error page, dashboard layout and device settings, so they live in a Nuxt layer in [web/](web/) instead of being copied. It gives an app:
+The web apps of the OpenGizmo projects share their Wi-Fi setup, error page, dashboard layout and device page, so they live in a Nuxt layer in [web/](web/) instead of being copied. It gives an app:
 
 - The pages `/wifi` and `/ap-setup` (the setup page of the hotspot), the network picker, the error page and the `dashboard` layout.
-- `<GizmoDeviceCard />` for the settings page: name, firmware, uptime, free memory, saved network, address and signal from `GET /api/device`, as the groups Device, Network and Actions, with **Restart** and **Forget network** behind a confirmation. The destructive rows come last: an app adds its own (for example "Reset saved settings") in the `danger-rows` slot, as `<ListRow danger action />` rows, and they stay even when the device can't be read. Long values (host name, network name) wrap instead of being cut.
+- `<GizmoDeviceCard />` for the device page: name, firmware, uptime, free memory, saved network, address and signal from `GET /api/device`, as the groups Device, Network and Actions, with **Restart** and **Forget network** behind a confirmation. The destructive rows come last: an app adds its own (for example "Reset saved settings") in the `danger-rows` slot, as `<ListRow danger action />` rows, and they stay even when the device can't be read. Long values (host name, network name) wrap instead of being cut.
 - The page layout of KrowdCall, so every page looks the same: `<GizmoPage :title>` is the centered column with the title (`hide-title` keeps the h1 for screen readers only, for pages that open with a main card), and the content is `ListGroup`s of `ListRow`s with a short title, a help text in `hint`, and the main button full width under its group. Inside a group:
   - A value row (host name, network name, any long value) is a `<ListRow :label :value :icon wrap-value />`: the value wraps instead of being cut with "...".
   - A slider row is a `<ListRow :label :icon :value>` with the library `<Slider>` in its default slot: the label and the current value (`value`) are on the first line, the slider under them at full width.
@@ -299,13 +299,14 @@ The layer needs `nuxt`, `@brumaombra/ui-vintage`, `@nuxtjs/i18n`, `@hugeicons/vu
 			homePath: '/',
 			nav: [
 				{ id: 'home', labelKey: 'nav.home.label', descriptionKey: 'nav.home.description', icon: Home01Icon, to: '/' },
+				{ id: 'device', labelKey: 'nav.device.label', descriptionKey: 'nav.device.description', icon: CpuIcon, to: '/device' },
 				'wifi'
 			]
 		}
 	});
 	```
 
-	The labels are keys of the app's own locale files.
+	The labels are keys of the app's own locale files. Every OpenGizmo app lists its pages in the same order: the pages of the gadget first (the first one is `homePath`, the page the app opens on), then **Device** (`/device`, with the device card), then **WiFi** last. The language is picked in the top bar only, never in a page.
 
 3. **Let Tailwind scan the layer.** Tailwind 4 only reads the sources of the app, so add one line to its `main.css`, after `@import "tailwindcss"`:
 
@@ -313,7 +314,7 @@ The layer needs `nuxt`, `@brumaombra/ui-vintage`, `@nuxtjs/i18n`, `@hugeicons/vu
 	@import "gizmo-common/web/app/assets/css/gizmo.css";
 	```
 
-4. **Use the card** in the settings page with `<GizmoDeviceCard />`, and the components above for the pages of the app, so they follow the same layout.
+4. **Use the card** in the device page (`app/pages/device.vue`) with `<GizmoDeviceCard />`, and the components above for the pages of the app, so they follow the same layout.
 5. **Name the mock device** (dev server only). The mock routes come with the layer, and an app keeps its own routes for its own endpoints. A Nitro plugin gives the mock the name of the app and the hostname of its firmware (always the project name, for example `gizmo-ticker`, so the device is at `http://gizmo-ticker.local`), and its own mock state can build on `getGizmoMockState()`:
 
 	```js
