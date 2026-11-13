@@ -70,7 +70,7 @@
             "connectConfirmMessage": "Send the selected credentials for {ssid} to the device, connect to that network, and disable the temporary hotspot?"
         },
         "device": {
-            "title": "Device",
+            "title": "Info",
             "actionsTitle": "Actions",
             "networkTitle": "Network",
             "name": "Name",

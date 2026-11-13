@@ -118,6 +118,13 @@ describe('GizmoDeviceCard', () => {
         expect(wrapper.text()).toContain('74%');
     });
 
+    // The groups of the card, top to bottom (the first is Info, so it doesn't repeat the title of the Device page that holds the card)
+    it('shows the groups Info, Network and Actions', async () => {
+        const wrapper = await mountCard();
+        await vi.waitFor(() => expect(wrapper.text()).toContain('v2026.11.04.1'));
+        expect(wrapper.findAll('section h2').map(title => title.text())).toEqual(['Info', 'Network', 'Actions']);
+    });
+
     // Long values (the host name of the firmware, the name of a network) used to be cut with "..." by the row
     it('shows long values whole, wrapping them in their row', async () => {
         device = { ...buildDevice(), name: 'Gizmo Reolink Switch', ssid: 'A Very Long Network Name 5GHz', hostname: 'gizmo-reolink-switch.local' };

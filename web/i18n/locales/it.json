@@ -70,7 +70,7 @@
             "connectConfirmMessage": "Inviare al dispositivo le credenziali selezionate per {ssid}, connetterlo a quella rete e disattivare l'hotspot temporaneo?"
         },
         "device": {
-            "title": "Dispositivo",
+            "title": "Info",
             "actionsTitle": "Azioni",
             "networkTitle": "Rete",
             "name": "Nome",
