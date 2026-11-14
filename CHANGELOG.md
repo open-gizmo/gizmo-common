@@ -4,6 +4,12 @@ What changed in each release. New notes go under **Unreleased** while the work i
 
 ## Unreleased
 
+## v2.5.2 - 2026-11-14
+
+- Device page: the hostname is the mDNS name the device answers on (for example `gizmo-ticker.local`), like the setup page shows. It was the Wi-Fi's default name (`esp32s3-XXXXXX.local`), which doesn't open the device.
+- The Wi-Fi also takes the mDNS name, so the router lists the device by it instead of `esp32s3-XXXXXX`.
+- New `gizmo::getHostname()`, the configured mDNS name without `.local`.
+
 ## v2.5.1 - 2026-11-13
 
 - Device card: the first group is now **Info**, so it doesn't repeat the title of the Device page that holds the card.
