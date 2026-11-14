@@ -116,7 +116,7 @@ namespace {
 		// Add the address and the signal, once connected
 		if (gizmo::isWifiConnected()) {
 			doc["ip"] = WiFi.localIP().toString();
-			doc["hostname"] = String(WiFi.getHostname()) + ".local";
+			doc["hostname"] = String(gizmo::getHostname()) + ".local"; // The mDNS name the device answers on, like /api/check-connection (not the Wi-Fi's default esp32-XXXXXX name)
 			doc["signalQuality"] = getSignalQuality(WiFi.RSSI());
 		}
 

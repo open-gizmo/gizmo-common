@@ -42,6 +42,9 @@ namespace gizmo {
 	// Check whether the setup hotspot is on
 	bool isAccessPointActive();
 
+	// Get the mDNS name of the device, without .local (empty before setupWifi)
+	const char *getHostname();
+
 	// Copy the saved network name, returning false if none is saved
 	bool getSavedWifiSsid(char *ssid, size_t length);
 

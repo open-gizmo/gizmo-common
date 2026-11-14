@@ -651,6 +651,11 @@ namespace gizmo {
 	void setupWifi(AsyncWebServer &server, const WifiSetupOptions &options) {
 		setupOptions = options;
 
+		// Give the Wi-Fi the mDNS name too, so the router lists the device by it (the core applies it when the interface starts, so before WiFi.mode)
+		if (setupOptions.hostname != nullptr && setupOptions.hostname[0] != '\0') {
+			WiFi.setHostname(setupOptions.hostname);
+		}
+
 		// Station only: the hotspot starts when needed, with its name (WIFI_AP_STA would turn it on right away, open and named ESP_XXXXXX)
 		WiFi.mode(WIFI_STA);
 		loadSavedCredentials();
@@ -713,6 +718,11 @@ namespace gizmo {
 			return;
 		}
 		startAccessPoint();
+	}
+
+	// Get the mDNS name of the device, without .local (empty before setupWifi)
+	const char *getHostname() {
+		return setupOptions.hostname != nullptr ? setupOptions.hostname : "";
 	}
 
 	// Get the current connection status
