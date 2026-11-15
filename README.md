@@ -166,7 +166,7 @@ The library is split into focused modules under `src/gizmo/`:
 - New credentials are tried first and saved only once they connect. If they fail, the device goes back to the saved network.
 - The hotspot turns itself off once the setup page has seen the connection succeed, or shortly after the Wi-Fi comes back.
 - Only clients connected through the hotspot are redirected to the setup page. Clients on the normal network are never redirected.
-- The saved network lives in its own NVS namespace, apart from the project's settings.
+- The saved network lives in its own `Preferences` namespace, apart from the project's settings.
 
 The Wi-Fi API the setup page talks to:
 
