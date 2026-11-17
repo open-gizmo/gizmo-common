@@ -4,6 +4,8 @@ What changed in each release. New notes go under **Unreleased** while the work i
 
 ## Unreleased
 
+## v2.6.0 - 2026-11-17
+
 - The Wi-Fi connection and the factory reset hold are now explicit state machines (`wifi_connection.h`, `factory_reset_hold.h`), built natively and covered by tests: boot, retries, wrong credentials, changing network while connected, router reboots, the hotspot shutdown and `millis()` rollover. The device behaves as before, apart from the two fixes below.
 - `getWifiStatus()` and `/api/check-connection` say `Disconnected` once the Wi-Fi drops. They kept saying `Connected` until a retry failed.
 - A setup page that polls `/api/check-connection` right after `/api/connect` can't read the previous status anymore: the request now counts as `Connecting` from the moment it arrives.
