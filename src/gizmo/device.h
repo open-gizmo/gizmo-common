@@ -5,6 +5,7 @@
 #ifdef ARDUINO
 
 #include <ESPAsyncWebServer.h>
+#include "factory_reset_hold.h" // FACTORY_RESET_HOLD_MS and the hold state machine
 
 namespace gizmo {
 	// Project details shown by the device API (the strings must stay valid, for example string literals)
@@ -24,9 +25,6 @@ namespace gizmo {
 
 	// The XIAO ESP32-S3's BOOT button (GPIO0): it only selects the flashing mode at power-up, so the firmware can read it once running
 	constexpr uint8_t BOOT_BUTTON_PIN = 0;
-
-	// How long the BOOT button must be held for a factory reset
-	constexpr unsigned long FACTORY_RESET_HOLD_MS = 10000;
 
 	// What a factory reset does besides forgetting the Wi-Fi (the callbacks run in the main loop)
 	struct FactoryResetOptions {

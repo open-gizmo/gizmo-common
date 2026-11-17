@@ -4,6 +4,11 @@ What changed in each release. New notes go under **Unreleased** while the work i
 
 ## Unreleased
 
+- The Wi-Fi connection and the factory reset hold are now explicit state machines (`wifi_connection.h`, `factory_reset_hold.h`), built natively and covered by tests: boot, retries, wrong credentials, changing network while connected, router reboots, the hotspot shutdown and `millis()` rollover. The device behaves as before, apart from the two fixes below.
+- `getWifiStatus()` and `/api/check-connection` say `Disconnected` once the Wi-Fi drops. They kept saying `Connected` until a retry failed.
+- A setup page that polls `/api/check-connection` right after `/api/connect` can't read the previous status anymore: the request now counts as `Connecting` from the moment it arrives.
+- `WifiStatus` moved to `gizmo/wifi_connection.h`, and `FACTORY_RESET_HOLD_MS` to `gizmo/factory_reset_hold.h` (now a `uint32_t`). `wifi_setup.h` and `device.h` include them, so gadgets have nothing to change.
+
 ## v2.5.2 - 2026-11-14
 
 - Device page: the hostname is the mDNS name the device answers on (for example `gizmo-ticker.local`), like the setup page shows. It was the Wi-Fi's default name (`esp32s3-XXXXXX.local`), which doesn't open the device.

@@ -15,59 +15,44 @@ namespace {
 	// Project details, and the hostname reported with them
 	gizmo::DeviceInfo deviceInfo = { "", "" };
 
-	// How often the hold progress is reported, and how long a press must last to count (against contact bounce)
-	constexpr unsigned long FACTORY_RESET_REPORT_MS = 250;
-	constexpr unsigned long BUTTON_DEBOUNCE_MS = 50;
-
-	// Factory reset state (main loop only)
+	// Factory reset state (main loop only): the report interval, the debounce time and the hold itself are in factory_reset_hold.*
 	gizmo::FactoryResetOptions factoryResetOptions;
 	bool isFactoryResetEnabled = false;
-	bool isButtonHeld = false;
-	bool isHoldHandled = false; // The hold already reset or was refused: nothing more until the button is released
-	unsigned long buttonPressedAt = 0;
-	unsigned long lastReportAt = 0;
+	gizmo::FactoryResetHold factoryResetHold;
 
 	// Watch the BOOT button: report the hold, then reset once it lasts FACTORY_RESET_HOLD_MS
 	void manageFactoryReset() {
 		if (!isFactoryResetEnabled) {
 			return;
 		}
-		const unsigned long now = millis();
 		const bool isPressed = digitalRead(gizmo::BOOT_BUTTON_PIN) == LOW;
+		const gizmo::FactoryResetHoldStep step = gizmo::stepFactoryResetHold(factoryResetHold, isPressed, millis());
+		switch (step.event) {
+			// Still held: report the time left
+			case gizmo::FactoryResetHoldEvent::Progress:
+				if (factoryResetOptions.onHold != nullptr) {
+					factoryResetOptions.onHold(step.remainingMs);
+				}
+				return;
 
-		// Released: tell the project if a hold was under way
-		if (!isPressed) {
-			if (isButtonHeld && !isHoldHandled && now - buttonPressedAt >= BUTTON_DEBOUNCE_MS && factoryResetOptions.onCancel != nullptr) {
-				factoryResetOptions.onCancel();
-			}
-			isButtonHeld = false;
-			isHoldHandled = false;
-			return;
-		}
+			// Released before the reset: tell the project
+			case gizmo::FactoryResetHoldEvent::Cancelled:
+				if (factoryResetOptions.onCancel != nullptr) {
+					factoryResetOptions.onCancel();
+				}
+				return;
 
-		// Just pressed: start timing
-		if (!isButtonHeld) {
-			isButtonHeld = true;
-			buttonPressedAt = now;
-			lastReportAt = now;
-			return;
-		}
-		if (isHoldHandled) {
-			return;
-		}
+			// Held long enough: reset below
+			case gizmo::FactoryResetHoldEvent::Completed:
+				break;
 
-		// Still held: report the time left
-		const unsigned long heldMs = now - buttonPressedAt;
-		if (heldMs < gizmo::FACTORY_RESET_HOLD_MS) {
-			if (heldMs >= BUTTON_DEBOUNCE_MS && now - lastReportAt >= FACTORY_RESET_REPORT_MS && factoryResetOptions.onHold != nullptr) {
-				lastReportAt = now;
-				factoryResetOptions.onHold(gizmo::FACTORY_RESET_HOLD_MS - heldMs);
-			}
-			return;
+			// Nothing new
+			case gizmo::FactoryResetHoldEvent::None:
+			default:
+				return;
 		}
 
 		// Held long enough: reset, unless the project refuses it right now
-		isHoldHandled = true;
 		if (factoryResetOptions.canReset != nullptr && !factoryResetOptions.canReset()) {
 			gizmo::printLogln("Factory reset refused by the project");
 			if (factoryResetOptions.onRefused != nullptr) {

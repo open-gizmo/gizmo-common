@@ -152,10 +152,12 @@ Everything lives in the `gizmo::` namespace, so it can't clash with project code
 The library is split into focused modules under `src/gizmo/`:
 
 - 📡 `wifi_setup.*` runs the Wi-Fi connection, the setup hotspot, the captive portal and the Wi-Fi API.
+- 🔀 `wifi_connection.*` is the state machine of the connection (idle, waiting for the old link to drop, connecting, connected): it decides, from what the Wi-Fi reports, and `wifi_setup.*` does what it says. It builds natively, so every transition is tested.
 - 🌐 `http.*` sends API responses, checks CORS and reads request bodies.
 - 🗂️ `embedded_assets.*` finds and serves the files of an embedded web app.
 - 🧱 `web/` is not firmware: it is the Nuxt layer of the web apps, and talks to the Wi-Fi and device APIs of the modules here.
 - 📟 `device.*` serves the device details, and restarts the device or forgets the network when the web app asks.
+- 🔘 `factory_reset_hold.*` is the state machine of the BOOT button hold for the factory reset (released, held, handled), tested natively like the connection.
 - 🧾 `log.*` prints logs through one shared buffer guarded by a mutex.
 - 🔢 `format.*` formats durations and numbers.
 - 🔤 `text.*` copies texts into fixed buffers, always cut to fit and ended.
@@ -176,7 +178,7 @@ The Wi-Fi API the setup page talks to:
 | `POST /api/connect` | `{ ssid, password }` (empty password for open networks, up to 32 and 64 characters) | `{ connectionStatus }` |
 | `GET /api/check-connection` | Poll after `connect` until the status is not `2` | `{ connectionStatus, ssid, ip, hostname }` (the last three once connected) |
 
-`connectionStatus` is `0` (not connected), `1` (connected) or `2` (connecting).
+`connectionStatus` is `0` (not connected), `1` (connected) or `2` (connecting). It says `2` only while the credentials sent to `/api/connect` are tried: the automatic retries of the saved network stay `0`, so a setup page that polls after a failure reads it as a failure, and the gadgets' screens don't flicker between "connecting" and "setup hotspot".
 
 ### 🌐 Web API
 
@@ -330,7 +332,7 @@ To try the layer before a release, link the folder instead of the tag: `rm -rf n
 
 ### 🧪 Tests
 
-The formatting and embedded assets modules, the `gizmo-embed` tool and the web layer are tested on your computer, no board needed. The Wi-Fi setup and web API need a board, so CI compiles them through the examples:
+The formatting and embedded assets modules, the state machines of the Wi-Fi connection and of the factory reset hold, the `gizmo-embed` tool and the web layer are tested on your computer, no board needed. The rest of the Wi-Fi setup and the web API need a board, so CI compiles them through the examples:
 
 ```bash
 pio test -e native   # Unit tests

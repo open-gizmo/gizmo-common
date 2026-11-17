@@ -6,18 +6,12 @@
 
 #include <ESPAsyncWebServer.h>
 #include "embedded_assets.h"
+#include "wifi_connection.h" // The connection status (WifiStatus) and its state machine
 
 namespace gizmo {
 	// Credential sizes from the Wi-Fi standard (32-character SSID, 64-character password, plus the terminator)
 	constexpr size_t WIFI_SSID_SIZE = 33;
 	constexpr size_t WIFI_PASSWORD_SIZE = 65;
-
-	// Wi-Fi connection status (the values are part of the web API)
-	enum class WifiStatus : uint8_t {
-		Disconnected = 0,
-		Connected = 1,
-		Connecting = 2,
-	};
 
 	// Project settings for the Wi-Fi setup
 	struct WifiSetupOptions {

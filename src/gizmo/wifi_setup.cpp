@@ -23,9 +23,6 @@ and keeps the setup hotspot available while the device has no working network.
 
 namespace {
 	constexpr uint16_t DNS_PORT = 53; // DNS port for the captive portal
-	constexpr unsigned long WIFI_CONNECT_TIMEOUT = 12500;
-	constexpr unsigned long WIFI_RETRY_INTERVAL = 10000;
-	constexpr unsigned long ACCESS_POINT_SHUTDOWN_DELAY = 120000; // Keep the hotspot for 2 minutes after reconnecting (so a phone in the setup flow sees the result)
 	constexpr int WIFI_SCAN_FAILED_STATUS = -2;
 
 	// NVS namespace and keys of the saved network (names are limited to 15 characters)
@@ -43,17 +40,10 @@ namespace {
 	volatile bool accessPointEnabled = false;
 	volatile bool isAccessPointShutdownRequested = false;
 
-	// Connection state (used by the main loop only)
+	// Connection state (used by the main loop only): the connection itself is a state machine in wifi_connection.*, with its timeouts
 	struct WifiRuntimeState {
 		bool mdnsActive = false;
-		bool connectInProgress = false;
-		bool isAttemptWithNewCredentials = false; // The current attempt uses credentials that are not saved yet
-		bool isWaitingForOldLinkToDrop = false; // The attempt started while connected, and the old link is still up
-		bool isConnected = false;
-		unsigned long connectedSince = 0;
-		unsigned long connectStartedAt = 0;
-		unsigned long reconnectDelayStartedAt = 0; // When the wait before the next attempt started
-		unsigned long reconnectDelay = 0; // How long to wait before the next attempt (0 = try now)
+		gizmo::WifiConnection connection;
 	};
 
 	// Create the connection state instance
@@ -174,10 +164,25 @@ namespace {
 		copyText(pendingCredentials.password, password, sizeof(pendingCredentials.password));
 		hasPendingCredentials = true;
 		isAttemptRequested = true;
-		portEXIT_CRITICAL(&credentialsMux);
 
-		// Report the attempt as in progress right away
+		// Report the attempt as in progress right away (under the lock, so the main loop can't report an older status meanwhile)
 		wifiStatus = gizmo::WifiStatus::Connecting;
+		portEXIT_CRITICAL(&credentialsMux);
+	}
+
+	// Check whether new credentials from the web app are waiting to be tried or saved
+	bool hasNewCredentials() {
+		portENTER_CRITICAL(&credentialsMux);
+		const bool hasCredentials = hasPendingCredentials;
+		portEXIT_CRITICAL(&credentialsMux);
+		return hasCredentials;
+	}
+
+	// Publish the status for the web app: Connecting while a request waits for the main loop, otherwise the state of the connection
+	void publishWifiStatus() {
+		portENTER_CRITICAL(&credentialsMux);
+		wifiStatus = isAttemptRequested ? gizmo::WifiStatus::Connecting : gizmo::getWifiConnectionStatus(wifiState.connection);
+		portEXIT_CRITICAL(&credentialsMux);
 	}
 
 	/******************************** mDNS and hotspot ********************************/
@@ -260,88 +265,27 @@ namespace {
 
 	/******************************** Connection attempts ********************************/
 
-	// Clear the current connection attempt state
-	void resetConnectionAttempt() {
-		wifiState.connectInProgress = false;
-		wifiState.connectStartedAt = 0;
-	}
-
-	// Start a connection attempt with the pending credentials, or the saved ones
-	bool beginConnectionAttempt() {
+	// Start a connection attempt with the pending credentials, or the saved ones (disconnecting is asynchronous, so the old link can linger: the state machine waits for it to drop)
+	void beginConnectionAttempt() {
 		WifiCredentials credentials;
-		const bool hasNewCredentials = readCredentialsToTry(credentials);
+		readCredentialsToTry(credentials);
 
-		// If the SSID is empty, we cannot start a connection attempt
+		// If the SSID is empty, there is nothing to try (the attempt times out and the hotspot stays on)
 		if (credentials.ssid[0] == '\0') {
-			return false;
+			return;
 		}
-
-		// Start the connection attempt and mark it as in progress (disconnecting is asynchronous, so the old link can linger)
-		wifiState.isWaitingForOldLinkToDrop = WiFi.status() == WL_CONNECTED;
 		WiFi.disconnect();
 		WiFi.begin(credentials.ssid, credentials.password);
-		wifiState.connectInProgress = true;
-		wifiState.isAttemptWithNewCredentials = hasNewCredentials;
-		wifiState.connectStartedAt = millis();
 		gizmo::printLogfln("Connecting to WiFi SSID: %s", credentials.ssid);
-		return true;
 	}
 
-	// Mark the Wi-Fi as connected, save new credentials, and schedule the hotspot shutdown
-	void completeConnectionSuccess() {
-		const bool wasAttemptInProgress = wifiState.connectInProgress;
-		resetConnectionAttempt();
-		wifiState.reconnectDelay = 0;
-		wifiStatus = gizmo::WifiStatus::Connected;
-
-		// If we weren't already connected, print the success message and save the new credentials if they were used
-		if (wasAttemptInProgress) {
-			gizmo::printLogln("WiFi connected!");
-			WifiCredentials credentials;
-			if (wifiState.isAttemptWithNewCredentials && readPendingCredentials(credentials)) {
-				saveWorkingCredentials(credentials);
-				clearPendingCredentials();
-			}
-			wifiState.isAttemptWithNewCredentials = false;
-		}
-
-		// Remember when the connection came back
-		if (!wifiState.isConnected) {
-			wifiState.isConnected = true;
-			wifiState.connectedSince = millis();
-		}
-
-		// Turn the setup hotspot off once Wi-Fi has been back for a while
-		if (accessPointEnabled && !isAccessPointShutdownRequested && millis() - wifiState.connectedSince >= ACCESS_POINT_SHUTDOWN_DELAY) {
-			gizmo::printLogln("WiFi is back, turning the access point off");
-			isAccessPointShutdownRequested = true;
-		}
-
-		// Start mDNS service
-		startMdns();
-	}
-
-	// Mark the current attempt as failed and schedule a future retry
-	void completeConnectionFailure() {
-		// Drop new credentials that didn't work (the next attempt goes back to the saved network)
-		if (wifiState.isAttemptWithNewCredentials) {
-			gizmo::printLogln("The new WiFi credentials didn't work, falling back to the saved ones");
+	// Save the new credentials that just worked
+	void saveNewCredentials() {
+		WifiCredentials credentials;
+		if (readPendingCredentials(credentials)) {
+			saveWorkingCredentials(credentials);
 			clearPendingCredentials();
-			wifiState.isAttemptWithNewCredentials = false;
 		}
-
-		// Mark the attempt as failed
-		WiFi.disconnect();
-		resetConnectionAttempt();
-		wifiStatus = gizmo::WifiStatus::Disconnected;
-		wifiState.reconnectDelayStartedAt = millis();
-		wifiState.reconnectDelay = WIFI_RETRY_INTERVAL;
-		gizmo::printLogfln("Failed to connect to WiFi, retrying in %lu ms", WIFI_RETRY_INTERVAL);
-	}
-
-	// Check whether a fresh connection attempt should start on this loop iteration
-	bool shouldStartConnectionAttempt(unsigned long currentMillis) {
-		return wifiStatus == gizmo::WifiStatus::Connecting || currentMillis - wifiState.reconnectDelayStartedAt >= wifiState.reconnectDelay; // Elapsed-time check stays correct across millis() rollover
 	}
 
 	/******************************** Network scan ********************************/
@@ -671,53 +615,65 @@ namespace gizmo {
 
 	// Connect, retry, and run the setup hotspot (call on every loop iteration)
 	void manageWifi() {
-		const unsigned long currentMillis = millis();
-
 		// Answer DNS requests and close the hotspot when requested
 		if (accessPointEnabled && dnsServer != nullptr) {
 			dnsServer->processNextRequest();
 		}
 		manageAccessPointShutdown();
 
-		// Start a connection attempt requested from the web server, even if already connected
-		if (takeConnectionRequest()) {
-			resetConnectionAttempt();
-			wifiState.reconnectDelay = 0;
-			wifiState.isConnected = false;
+		// Move the connection on (wifi_connection.cpp decides, this runs what it asks for, in order)
+		gizmo::WifiConnectionInputs inputs;
+		inputs.now = millis();
+		inputs.isLinkUp = WiFi.status() == WL_CONNECTED;
+		inputs.isAttemptRequested = takeConnectionRequest();
+		inputs.hasNewCredentials = hasNewCredentials();
+		inputs.hasSavedCredentials = hasSavedCredentials();
+		inputs.isAccessPointOn = accessPointEnabled;
+		inputs.isAccessPointShutdownRequested = isAccessPointShutdownRequested;
+		const gizmo::WifiConnectionActions actions = gizmo::stepWifiConnection(wifiState.connection, inputs);
+
+		// Stop mDNS while the network is down or changing
+		if (actions.stopMdns) {
 			stopMdns();
-			beginConnectionAttempt();
-			return;
 		}
 
-		// While an attempt waits for the previous link to drop, don't take the old connection for the new one
-		if (wifiState.connectInProgress && wifiState.isWaitingForOldLinkToDrop && WiFi.status() != WL_CONNECTED) {
-			wifiState.isWaitingForOldLinkToDrop = false;
-		}
-
-		// Check if connected to Wi-Fi
-		if (WiFi.status() == WL_CONNECTED && !(wifiState.connectInProgress && wifiState.isWaitingForOldLinkToDrop)) {
-			completeConnectionSuccess();
-			return;
-		}
-
-		// Not connected
-		wifiState.isConnected = false;
-		stopMdns();
-
-		// Poll the current connection attempt until it succeeds or times out
-		if (wifiState.connectInProgress) {
-			if (currentMillis - wifiState.connectStartedAt >= WIFI_CONNECT_TIMEOUT) {
-				completeConnectionFailure();
-				startAccessPoint();
+		// An attempt timed out: drop new credentials that didn't work (the next attempt goes back to the saved network)
+		if (actions.hasFailed) {
+			if (actions.dropNewCredentials) {
+				gizmo::printLogln("The new WiFi credentials didn't work, falling back to the saved ones");
+				clearPendingCredentials();
 			}
-			return;
+			WiFi.disconnect();
+			gizmo::printLogfln("Failed to connect to WiFi, retrying in %lu ms", static_cast<unsigned long>(gizmo::WIFI_RETRY_INTERVAL_MS));
 		}
 
-		// Retry the saved network when it's time, keeping the hotspot available meanwhile
-		if (hasSavedCredentials() && shouldStartConnectionAttempt(currentMillis) && beginConnectionAttempt()) {
-			return;
+		// An attempt worked: save the new credentials it used
+		if (actions.hasConnected) {
+			gizmo::printLogln("WiFi connected!");
+			if (actions.saveNewCredentials) {
+				saveNewCredentials();
+			}
 		}
-		startAccessPoint();
+
+		// Start an attempt, or keep the hotspot available while there is no network
+		if (actions.startAttempt) {
+			beginConnectionAttempt();
+		}
+		if (actions.startAccessPoint) {
+			startAccessPoint();
+		}
+
+		// Turn the setup hotspot off once Wi-Fi has been back for a while, and answer on the mDNS name
+		if (actions.requestAccessPointShutdown) {
+			gizmo::printLogln("WiFi is back, turning the access point off");
+			isAccessPointShutdownRequested = true;
+		}
+		if (actions.startMdns) {
+			startMdns();
+		}
+
+		// Tell the web app where the connection is
+		publishWifiStatus();
 	}
 
 	// Get the mDNS name of the device, without .local (empty before setupWifi)
