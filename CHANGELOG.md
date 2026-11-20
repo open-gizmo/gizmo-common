@@ -4,6 +4,8 @@ What changed in each release. New notes go under **Unreleased** while the work i
 
 ## Unreleased
 
+## v2.7.0 - 2026-11-20
+
 - Web layer: an answer of the device that isn't JSON (an HTML page of the setup hotspot, a proxy, a cut-off body) fails with "The device sent an answer the app could not read." It used to read as an empty answer, so the app carried on as if the request had worked. Error answers keep their HTTP status, and calls with a `responseType` (the camera's snapshot) are unchanged.
 - Web layer: new `readData(response)`, which returns the `data` of an answer and fails with the same message when it isn't an object. The networks, device and Wi-Fi check calls use it; gadgets can use it instead of `response.data || {}`.
 
