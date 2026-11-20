@@ -42,7 +42,7 @@
 		"tailwindcss": "^4.2.4"
 	},
 	"devDependencies": {
-		"@brumaombra/ui-vintage": "0.9.44",
+		"@brumaombra/ui-vintage": "0.9.52",
 		"@hugeicons/core-free-icons": "4.3.5",
 		"@hugeicons/vue": "1.0.8",
 		"@nuxt/test-utils": "4.3.2",
