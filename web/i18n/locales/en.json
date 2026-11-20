@@ -25,6 +25,7 @@
             "label": "Error"
         },
         "api": {
+            "invalidResponse": "The device sent an answer the app could not read.",
             "wifiWrongCredentials": "The Wi-Fi credentials are wrong or the network is unavailable.",
             "wifiUnknownStatus": "The device returned an unknown Wi-Fi connection status.",
             "wifiTimeout": "The device did not finish connecting to Wi-Fi in time.",

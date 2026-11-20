@@ -7,6 +7,22 @@ const connectionStatus = Object.freeze({
     WIFI_KO: 0
 });
 
+// Refuse a successful answer that isn't JSON: ofetch's parser never fails, it hands back the raw text, which then read as an empty answer (an error status is left to ofetch, so the error keeps its status for handleBackendErrors)
+const refuseNonJsonAnswer = ({ response }) => {
+    if (response.ok && typeof response._data === 'string') {
+        throw new Error(translate('gizmo.api.invalidResponse'));
+    }
+};
+
+// Read the data of an answer of the device, which must be an object: anything else is an answer the app can't use, so it fails with a message instead of carrying on with nothing
+export const readData = response => {
+    const data = response?.data;
+    if (data === null || typeof data !== 'object' || Array.isArray(data)) {
+        throw new Error(translate('gizmo.api.invalidResponse'));
+    }
+    return data;
+};
+
 // Fetch either the real ESP endpoint or the local Nitro mock endpoint (the base address comes from the runtime config: espBaseUrl)
 export const fetchEsp = (path, options = {}) => {
     const runtimeConfig = useRuntimeConfig();
@@ -14,19 +30,25 @@ export const fetchEsp = (path, options = {}) => {
     const normalizedBaseUrl = baseUrl ? baseUrl.replace(/\/$/, '') : '';
     const normalizedPath = path.startsWith('/') ? path : `/${path}`;
     const resolvedUrl = normalizedBaseUrl ? `${normalizedBaseUrl}${normalizedPath}` : normalizedPath;
-    return $fetch(resolvedUrl, options);
+
+    // Answers must be JSON, unless the caller asks for another type (the camera's snapshot is a blob); the caller's own onResponse hooks still run, after this check
+    if (options.responseType) {
+        return $fetch(resolvedUrl, options);
+    }
+    const onResponse = [refuseNonJsonAnswer, ...[options.onResponse ?? []].flat()];
+    return $fetch(resolvedUrl, { ...options, onResponse });
 };
 
 // Fetch the list of visible WiFi networks
 export const getNetworks = async () => {
     const response = await fetchEsp('/api/networks');
-    return response.data || {};
+    return readData(response);
 };
 
 // Fetch the details of the device: name, firmware, uptime, memory, saved network, address and signal
 export const getDevice = async () => {
     const response = await fetchEsp('/api/device', { retry: 0 });
-    return response.data || {};
+    return readData(response);
 };
 
 // Ask the device to restart (it answers first, and restarts about a second later)
@@ -47,7 +69,8 @@ const checkWiFiConnectionPolling = async () => {
     for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
         try {
             const response = await fetchEsp('/api/check-connection', { retry: 0 });
-            const status = Number(response.data?.connectionStatus);
+            const data = readData(response);
+            const status = Number(data.connectionStatus);
 
             // If the device is still trying to connect, continue polling
             switch (status) {
@@ -58,9 +81,9 @@ const checkWiFiConnectionPolling = async () => {
                 // Connection successful
                 case connectionStatus.WIFI_OK:
                     return {
-                        ssid: response.data?.ssid || '',
-                        ip: response.data?.ip || '',
-                        hostname: response.data?.hostname || ''
+                        ssid: data.ssid || '',
+                        ip: data.ip || '',
+                        hostname: data.hostname || ''
                     };
 
                 // Connection failed

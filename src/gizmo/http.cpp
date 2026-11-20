@@ -91,7 +91,7 @@ namespace gizmo {
 		JsonDocument doc;
 		initializeResponse(doc);
 
-		// Populate the error details
+		// Populate the error details (ArduinoJson 7 keeps these two as pointers, without copying them: safe only because the response is written before this function returns)
 		doc["errorId"] = errorId;
 		doc["errorMessage"] = errorMessage;
 

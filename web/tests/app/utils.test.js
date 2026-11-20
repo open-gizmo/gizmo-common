@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { registerEndpoint } from '@nuxt/test-utils/runtime';
-import { fetchEsp } from '~/composables/useGizmoApi.js';
+import { fetchEsp, getDevice, getNetworks, readData } from '~/composables/useGizmoApi.js';
 import { handleBackendErrors, splitUptime } from '~/composables/useGizmoUtils.js';
 
 // Record the error dialogs instead of rendering them
@@ -82,6 +82,66 @@ describe('fetchEsp', () => {
     it('joins the device address to the path', async () => {
         useRuntimeConfig().public.espBaseUrl = ' http://192.168.1.50/ ';
         await expect(fetchEsp('/api/restart', { method: 'POST' })).rejects.toMatchObject({ request: 'http://192.168.1.50/api/restart' });
+    });
+
+    // An answer that isn't JSON (the HTML page of the setup hotspot, a proxy, a half-written body) is an error, not an empty answer
+    it('refuses an answer that is not JSON', async () => {
+        registerEndpoint('/api/html-answer', () => '<!DOCTYPE html><html><body>Wi-Fi setup</body></html>');
+        await expect(fetchEsp('/api/html-answer')).rejects.toThrow('The device sent an answer the app could not read.');
+    });
+
+    // An error answer keeps its status even when its body isn't JSON, so handleBackendErrors still gets an HTTP error
+    it('leaves error answers to ofetch', async () => {
+        registerEndpoint('/api/broken', () => new Response('<html>Server error</html>', { status: 500, headers: { 'Content-Type': 'text/html' } }));
+        await expect(fetchEsp('/api/broken')).rejects.toMatchObject({ statusCode: 500 });
+    });
+
+    // A caller's own onResponse hook still runs, after the check
+    it('keeps the onResponse hook of the caller', async () => {
+        registerEndpoint('/api/hooked', () => ({ errorId: null, errorMessage: null, data: {} }));
+        const seen = [];
+        await fetchEsp('/api/hooked', { onResponse: ({ response }) => seen.push(response.status) });
+        expect(seen).toEqual([200]);
+    });
+
+    // The camera's snapshot asks for a blob: strict JSON must not be forced on it (ofetch's parseResponse would turn any responseType into JSON)
+    it('keeps the response type the caller asks for', async () => {
+        registerEndpoint('/api/binary-answer', () => new Response(new Uint8Array([0xff, 0xd8, 0xff, 0xd9]), { headers: { 'Content-Type': 'image/jpeg' } }));
+        const image = await fetchEsp('/api/binary-answer', { responseType: 'blob' });
+        expect(image).toBeInstanceOf(Blob);
+        expect(image.size).toBe(4);
+    });
+});
+
+// The data of an answer of the device: an object, or an error the user can read
+describe('readData', () => {
+    // The usual answer of the device
+    it('returns the data object', () => {
+        expect(readData({ errorId: null, errorMessage: null, data: { name: 'Gizmo' } })).toEqual({ name: 'Gizmo' });
+    });
+
+    // Anything else used to become {} through "response.data || {}", and the app carried on as if the request had worked
+    it('throws when the answer has no data object', () => {
+        for (const response of [null, 'Wi-Fi setup', {}, { data: null }, { data: 'ok' }, { data: [1, 2] }]) {
+            expect(() => readData(response)).toThrow('The device sent an answer the app could not read.');
+        }
+    });
+});
+
+// The device routes of the layer read their answer strictly
+describe('device routes', () => {
+    // The networks and the device details fail with a message instead of returning an empty object
+    it('fail on an answer without data', async () => {
+        registerEndpoint('/api/networks', () => ({ errorId: null, errorMessage: null }));
+        registerEndpoint('/api/device', () => '<html>Not the device</html>');
+        await expect(getNetworks()).rejects.toThrow('The device sent an answer the app could not read.');
+        await expect(getDevice()).rejects.toThrow('The device sent an answer the app could not read.');
+    });
+
+    // A good answer still comes through
+    it('return the data of a good answer', async () => {
+        registerEndpoint('/api/networks', () => ({ errorId: null, errorMessage: null, data: { networks: [{ ssid: 'Home' }] } }));
+        expect(await getNetworks()).toEqual({ networks: [{ ssid: 'Home' }] });
     });
 });
 
