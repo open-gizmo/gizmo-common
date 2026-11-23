@@ -12,4 +12,4 @@ For AI agents (Claude Code, Codex, Copilot and others) working on this repositor
 
 Follow "Releasing a new version" in the README. The version's notes must be moved from `## Unreleased` to a `## vX.Y.Z - YYYY-MM-DD` heading in CHANGELOG.md: they become the GitHub release notes, and the release workflow stops before tagging when they are missing or when notes are left under Unreleased. After a release, the gadgets move to the new tag in both `webapp/package.json` and `microcontroller/platformio.ini`, so the firmware and the web layer name the same version.
 
-Work on the `feature` branch; changes reach `develop` and then `main` one step at a time, only for a release.
+Work on a branch made from `develop`, and open a pull request into `develop`; changes reach `main` from there one step at a time, only for a release.
