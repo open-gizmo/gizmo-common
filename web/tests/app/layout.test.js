@@ -46,7 +46,7 @@ describe('useGizmoNavItems', () => {
         appConfig.gizmo.nav = [homeItem, 'wifi'];
         const items = await readNavItems();
         expect(items.map(item => item.id)).toEqual(['home', 'wifi']);
-        expect(items[1]).toMatchObject({ label: 'WiFi', description: 'Scan networks and connect the device', to: '/wifi' });
+        expect(items[1]).toMatchObject({ label: 'Wi-Fi', description: 'Scan networks and connect the device', to: '/wifi' });
     });
 
     // A name the layer does not provide is skipped instead of breaking the sidebar
@@ -72,7 +72,7 @@ describe('app name and logo', () => {
         appConfig.gizmo.nav = [homeItem, 'wifi'];
         const wrapper = await mountSuspended(DashboardLayout);
         expect(wrapper.text()).toContain('Test Strip');
-        expect(wrapper.text()).toContain('WiFi');
+        expect(wrapper.text()).toContain('Wi-Fi');
         expect(wrapper.html()).toContain('/test-logo.svg');
     });
 

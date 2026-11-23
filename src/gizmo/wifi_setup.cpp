@@ -104,7 +104,7 @@ namespace {
 			preferences.end();
 		}
 		if (!isSaved) {
-			gizmo::printLogln("Failed to save the new WiFi credentials");
+			gizmo::printLogln("Failed to save the new Wi-Fi credentials");
 		}
 
 		// Update the RAM copy (even if the flash write failed, so the device keeps using the working network)
@@ -276,7 +276,7 @@ namespace {
 		}
 		WiFi.disconnect();
 		WiFi.begin(credentials.ssid, credentials.password);
-		gizmo::printLogfln("Connecting to WiFi SSID: %s", credentials.ssid);
+		gizmo::printLogfln("Connecting to Wi-Fi SSID: %s", credentials.ssid);
 	}
 
 	// Save the new credentials that just worked
@@ -640,16 +640,16 @@ namespace gizmo {
 		// An attempt timed out: drop new credentials that didn't work (the next attempt goes back to the saved network)
 		if (actions.hasFailed) {
 			if (actions.dropNewCredentials) {
-				gizmo::printLogln("The new WiFi credentials didn't work, falling back to the saved ones");
+				gizmo::printLogln("The new Wi-Fi credentials didn't work, falling back to the saved ones");
 				clearPendingCredentials();
 			}
 			WiFi.disconnect();
-			gizmo::printLogfln("Failed to connect to WiFi, retrying in %lu ms", static_cast<unsigned long>(gizmo::WIFI_RETRY_INTERVAL_MS));
+			gizmo::printLogfln("Failed to connect to Wi-Fi, retrying in %lu ms", static_cast<unsigned long>(gizmo::WIFI_RETRY_INTERVAL_MS));
 		}
 
 		// An attempt worked: save the new credentials it used
 		if (actions.hasConnected) {
-			gizmo::printLogln("WiFi connected!");
+			gizmo::printLogln("Wi-Fi connected!");
 			if (actions.saveNewCredentials) {
 				saveNewCredentials();
 			}
@@ -665,7 +665,7 @@ namespace gizmo {
 
 		// Turn the setup hotspot off once Wi-Fi has been back for a while, and answer on the mDNS name
 		if (actions.requestAccessPointShutdown) {
-			gizmo::printLogln("WiFi is back, turning the access point off");
+			gizmo::printLogln("Wi-Fi is back, turning the access point off");
 			isAccessPointShutdownRequested = true;
 		}
 		if (actions.startMdns) {

@@ -12,7 +12,7 @@
         },
         "nav": {
             "wifi": {
-                "label": "WiFi",
+                "label": "Wi-Fi",
                 "description": "Scan networks and connect the device"
             }
         },
@@ -29,7 +29,7 @@
             "wifiWrongCredentials": "The Wi-Fi credentials are wrong or the network is unavailable.",
             "wifiUnknownStatus": "The device returned an unknown Wi-Fi connection status.",
             "wifiTimeout": "The device did not finish connecting to Wi-Fi in time.",
-            "wifiFailed": "Failed to connect to WiFi",
+            "wifiFailed": "Failed to connect to Wi-Fi",
             "wifiConnectError": "An error occurred while connecting to the Wi-Fi network",
             "backendErrors": {
                 "missing_required_fields": "Some information is missing. Please check the form and try again.",
@@ -45,19 +45,19 @@
             }
         },
         "wifi": {
-            "title": "Connect to WiFi",
+            "title": "Connect to Wi-Fi",
             "currentNetworkLabel": "Current network",
             "notConnected": "Not connected",
             "availableNetworks": "Available networks",
             "password": "Password",
-            "passwordPlaceholder": "Enter the WiFi password",
+            "passwordPlaceholder": "Enter the Wi-Fi password",
             "note": "The device will try the credentials immediately and disable its temporary hotspot after a successful connection.",
             "connectAction": "Connect device",
             "connectedTitle": "Device connected",
             "connectedMessage": "The microcontroller connected to {ssid} and is available at {hostname} and {ip}.",
             "connectError": "An error occurred while connecting to the Wi-Fi network",
             "refreshError": "An error occurred while refreshing the SSID list",
-            "connectConfirmTitle": "Connect device to WiFi",
+            "connectConfirmTitle": "Connect device to Wi-Fi",
             "connectConfirmMessage": "Send the selected credentials for {ssid} to the device and switch it to that network?",
             "noNetworksTitle": "No networks found yet",
             "noNetworksDescription": "The device is still scanning, or no network is in range. Scan again in a few seconds.",
@@ -66,7 +66,7 @@
             "passwordDialogDescription": "Enter the password of this network."
         },
         "apSetup": {
-            "title": "Connect to WiFi",
+            "title": "Connect to Wi-Fi",
             "connectConfirmTitle": "Connect and leave AP mode",
             "connectConfirmMessage": "Send the selected credentials for {ssid} to the device, connect to that network, and disable the temporary hotspot?"
         },
