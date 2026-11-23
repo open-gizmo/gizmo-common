@@ -4,6 +4,8 @@ What changed in each release. New notes go under **Unreleased** while the work i
 
 ## Unreleased
 
+- Web layer: "WiFi" is now spelled "Wi-Fi" in English and Italian: the tab, the page title, the password field, the connect dialog and the error. A gadget that checks the tab's label in its tests (`layerPages.test.js`) expects `Wi-Fi` after the update. The serial log says Wi-Fi too.
+
 ## v2.7.0 - 2026-11-20
 
 - Web layer: an answer of the device that isn't JSON (an HTML page of the setup hotspot, a proxy, a cut-off body) fails with "The device sent an answer the app could not read." It used to read as an empty answer, so the app carried on as if the request had worked. Error answers keep their HTTP status, and calls with a `responseType` (the camera's snapshot) are unchanged.

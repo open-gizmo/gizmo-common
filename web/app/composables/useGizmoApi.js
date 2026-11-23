@@ -39,7 +39,7 @@ export const fetchEsp = (path, options = {}) => {
     return $fetch(resolvedUrl, { ...options, onResponse });
 };
 
-// Fetch the list of visible WiFi networks
+// Fetch the list of visible Wi-Fi networks
 export const getNetworks = async () => {
     const response = await fetchEsp('/api/networks');
     return readData(response);
@@ -61,11 +61,11 @@ export const forgetWifi = async () => {
     await fetchEsp('/api/forget-wifi', { method: 'POST' });
 };
 
-// Poll the device until the WiFi connection attempt completes
+// Poll the device until the Wi-Fi connection attempt completes
 const checkWiFiConnectionPolling = async () => {
     const maxAttempts = 45;
 
-    // Poll the device every second to check the WiFi connection status
+    // Poll the device every second to check the Wi-Fi connection status
     for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
         try {
             const response = await fetchEsp('/api/check-connection', { retry: 0 });
@@ -108,10 +108,10 @@ const checkWiFiConnectionPolling = async () => {
     throw new Error(translate('gizmo.api.wifiTimeout'));
 };
 
-// Send WiFi credentials and wait for the final connection result
+// Send Wi-Fi credentials and wait for the final connection result
 export const connectToWiFi = async (ssid, password) => {
     try {
-        // Call the device API to start the WiFi connection process
+        // Call the device API to start the Wi-Fi connection process
         const response = await fetchEsp('/api/connect', {
             method: 'POST',
             body: {

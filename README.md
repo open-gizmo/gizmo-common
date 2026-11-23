@@ -308,7 +308,7 @@ The layer needs `nuxt`, `@brumaombra/ui-vintage`, `@nuxtjs/i18n`, `@hugeicons/vu
 	});
 	```
 
-	The labels are keys of the app's own locale files. Every OpenGizmo app lists its pages in the same order: the pages of the gadget first (the first one is `homePath`, the page the app opens on), then **Device** (`/device`, with the device card), then **WiFi** last. The language is picked in the top bar only, never in a page.
+	The labels are keys of the app's own locale files. Every OpenGizmo app lists its pages in the same order: the pages of the gadget first (the first one is `homePath`, the page the app opens on), then **Device** (`/device`, with the device card), then **Wi-Fi** last. The language is picked in the top bar only, never in a page.
 
 3. **Let Tailwind scan the layer.** Tailwind 4 only reads the sources of the app, so add one line to its `main.css`, after `@import "tailwindcss"`:
 

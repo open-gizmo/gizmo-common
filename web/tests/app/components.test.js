@@ -38,7 +38,7 @@ describe('Wi-Fi page', () => {
         registerEndpoint('/api/networks', () => ({ errorId: null, errorMessage: null, data: { networks: [{ ssid: 'Office Fiber', quality: 74, secured: true }] } }));
         const wrapper = await mountSuspended(WifiPage);
         await vi.waitFor(() => expect(wrapper.text()).toContain('Office Fiber'));
-        expect(wrapper.find('h1').text()).toBe('Connect to WiFi');
+        expect(wrapper.find('h1').text()).toBe('Connect to Wi-Fi');
         expect(wrapper.findAll('h2').map(title => title.text())).toEqual(['Current network', 'Available networks']);
         await vi.waitFor(() => expect(wrapper.find('ul').text()).toContain('Home'));
     });
