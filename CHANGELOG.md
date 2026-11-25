@@ -4,6 +4,8 @@ What changed in each release. New notes go under **Unreleased** while the work i
 
 ## Unreleased
 
+## v2.7.1 - 2026-11-25
+
 - Web layer: "WiFi" is now spelled "Wi-Fi" in English and Italian: the tab, the page title, the password field, the connect dialog and the error. A gadget that checks the tab's label in its tests (`layerPages.test.js`) expects `Wi-Fi` after the update. The serial log says Wi-Fi too.
 
 ## v2.7.0 - 2026-11-20
